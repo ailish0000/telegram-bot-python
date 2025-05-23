@@ -1,21 +1,31 @@
 # Импортируем нужные модули из aiogram
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import os
 from dotenv import load_dotenv  # Для загрузки переменных из .env
 
-# Загружаем переменные окружения из файла .env
-load_dotenv()
+# Проверка на поддержку SSL (важно для aiogram)
+try:
+    import ssl
+    SSL_AVAILABLE = True
+except ImportError:
+    SSL_AVAILABLE = False
+    print("⚠️ Библиотека SSL недоступна. Бот не сможет установить HTTPS-соединения.")
 
-# Получаем токен бота и ID администратора из переменных окружения
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = int(os.getenv("ADMIN_ID"))  # Важно: должен быть числом
+if SSL_AVAILABLE:
+    from aiogram import Bot, Dispatcher, executor, types
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# Создаём экземпляры бота и диспетчера
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(bot)
+    # Загружаем переменные окружения из файла .env
+    load_dotenv()
 
-# Функция, создающая главное меню (inline-кнопки)
+    # Получаем токен бота и ID администратора из переменных окружения
+    BOT_TOKEN = os.getenv("BOT_TOKEN")
+    ADMIN_ID = int(os.getenv("ADMIN_ID"))  # Важно: должен быть числом
+
+    # Создаём экземпляры бота и диспетчера
+    bot = Bot(token=BOT_TOKEN)
+    dp = Dispatcher(bot)
+
+    # Функция, создающая главное меню (inline-кнопки)
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
