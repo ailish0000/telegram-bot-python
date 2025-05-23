@@ -1,6 +1,8 @@
 aiogram==2.25.2
 requests==2.31.0
 beautifulsoup4==4.12.2
+python-dotenv>=0.21.0  
+
 
 
 
