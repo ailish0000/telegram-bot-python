@@ -111,10 +111,10 @@ async def registration_command(message: types.Message):
 async def catalog_command(message: types.Message):
     await message.answer("https://aur-ora.com/catalog/vse_produkty/")
 
-# Обработка нажатий на кнопки меню
-@dp.callback_query_handler()
+@dp.callback_query_handler(lambda c: c.data not in ["liver", "next_product", "prev_product"])
 async def process_callback(callback_query: types.CallbackQuery):
     data = callback_query.data
+    await callback_query.answer()  # обязательно!
 
     if data == "registration":
         await bot.send_message(callback_query.from_user.id, "https://aur-ora.com/auth/registration/666282189484")
