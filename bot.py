@@ -135,7 +135,7 @@ async def prev_product(callback_query: types.CallbackQuery):
     user_carousel_positions[user_id] = max(0, user_carousel_positions[user_id] - 1)
     await send_product(user_id)
 
-# Обработка нажатий на остальные кнопки меню
+# Обработка нажатий на остальные кнопки меню (должна быть последней!)
 @dp.callback_query_handler()
 async def process_callback(callback_query: types.CallbackQuery):
     data = callback_query.data
@@ -156,3 +156,4 @@ async def process_callback(callback_query: types.CallbackQuery):
 # Запуск бота
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
+
