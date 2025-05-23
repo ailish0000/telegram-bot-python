@@ -28,9 +28,9 @@ main_menu.add(
 # Подменю выбора продуктов
 product_menu = InlineKeyboardMarkup(row_width=2)
 product_menu.add(
+    InlineKeyboardButton("Для печени", callback_data="liver"),
     InlineKeyboardButton("Для волос", callback_data="hair"),
     InlineKeyboardButton("Для суставов", callback_data="joints"),
-    InlineKeyboardButton("Для печени", callback_data="liver"),
     InlineKeyboardButton("Витамины", callback_data="vitamins"),
     InlineKeyboardButton("Задать вопрос", callback_data="ask_question"),
     InlineKeyboardButton("Сообщить об ошибке", callback_data="report_error")
