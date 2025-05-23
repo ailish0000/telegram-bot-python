@@ -84,13 +84,8 @@ async def handle_callback(callback_query: types.CallbackQuery):
         InlineKeyboardButton("Могилев", callback_data="Mogelev")  
 
         elif data == "Minsk":
-        await bot.send_message(user_id, "Адрес
-Калининец, Наро-Фоминский р-он, Московскя обл., Россия
-Телефон
-+7 915 063 3557
-Мессенджеры
-telegram@Elena_Mikylina
-whatsapp+7 915 063 3557")
+        await bot.send_message(user_id, "Адрес: Калининец, Наро-Фоминский р-он, Московская обл., Россия. Тел: +7 915 063 3557")
+
 
     elif data == "report_error":
         await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
