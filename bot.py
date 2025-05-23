@@ -34,7 +34,7 @@ if SSL_AVAILABLE:
             InlineKeyboardButton("2️⃣ Задать вопрос", callback_data="ask_question"),
             InlineKeyboardButton("3️⃣ Каталог всех продуктов", callback_data="catalog"),
             InlineKeyboardButton("4️⃣ Адреса магазинов", callback_data="check_city"),
-            InlineKeyboardButton("Сообщить об ошибке ❌", url="https://aur-ora.com/feedback")
+            InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
         )
         return markup
 
@@ -46,7 +46,7 @@ if SSL_AVAILABLE:
             InlineKeyboardButton("Для суставов", callback_data="joints"),
             InlineKeyboardButton("Для печени", callback_data="liver"),
             InlineKeyboardButton("Витамины", callback_data="vitamins"),
-            InlineKeyboardButton("Сообщить об ошибке", callback_data="report_error")
+            InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
         )
         return markup
 
@@ -58,7 +58,9 @@ if SSL_AVAILABLE:
             InlineKeyboardButton("Гомель", callback_data="Gomel"),
             InlineKeyboardButton("Брест", callback_data="Brest"),
             InlineKeyboardButton("Витебск", callback_data="Vitebsk"),
-            InlineKeyboardButton("Могилев", callback_data="Mogilev")
+            InlineKeyboardButton("Могилев", callback_data="Mogilev"),
+            InlineKeyboardButton("Нет моего города", callback_data="none_city"),
+            InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
         )
         return markup
 
