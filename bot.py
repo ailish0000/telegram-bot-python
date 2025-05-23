@@ -1,95 +1,156 @@
-# Импортируем нужные модули из aiogram
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils import executor
+from bs4 import BeautifulSoup
+import logging
+import asyncio
 import os
-from dotenv import load_dotenv  # Для загрузки переменных из .env
+import requests  # Используем requests вместо aiohttp
 
-# Загружаем переменные окружения из файла .env
-load_dotenv()
+# Включаем логирование
+logging.basicConfig(level=logging.INFO)
 
-# Получаем токен бота и ID администратора из переменных окружения
+# Токен из переменной окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = int(os.getenv("ADMIN_ID"))  # Важно: должен быть числом
 
-# Создаём экземпляры бота и диспетчера
+# Инициализация бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 
-# Функция, создающая главное меню (inline-кнопки)
-def main_menu():
-    markup = InlineKeyboardMarkup(row_width=2)  # 2 кнопки в ряд
-    markup.add(
-        InlineKeyboardButton("Регистрация", url="https://aur-ora.com/auth/registration/666282189484"),
-        InlineKeyboardButton("Проверить адрес", callback_data="check_address"),
-        InlineKeyboardButton("Выбрать продукт", callback_data="select_product")
-    )
-    return markup
+# Главное меню с кнопками
+main_menu = InlineKeyboardMarkup(row_width=1)
+main_menu.add(
+    InlineKeyboardButton("Регистрация", callback_data="registration"),
+    InlineKeyboardButton("Проверить адрес", callback_data="check_address"),
+    InlineKeyboardButton("Выбрать продукт", callback_data="select_product")
+)
 
-# Функция, создающая меню выбора продукта
-def product_menu():
+# Подменю выбора продуктов
+product_menu = InlineKeyboardMarkup(row_width=2)
+product_menu.add(
+    InlineKeyboardButton("Для волос", callback_data="hair"),
+    InlineKeyboardButton("Для суставов", callback_data="joints"),
+    InlineKeyboardButton("Для печени", callback_data="liver"),
+    InlineKeyboardButton("Витамины", callback_data="vitamins"),
+    InlineKeyboardButton("Задать вопрос", callback_data="ask_question"),
+    InlineKeyboardButton("Сообщить об ошибке", callback_data="report_error")
+)
+
+# Ссылки на продукты (для карусели)
+PRODUCT_URLS = [
+    "https://aur-ora.com/catalog/zdorove/640",
+    "https://aur-ora.com/catalog/aktsii_3_a/703",
+    "https://aur-ora.com/catalog/vse_produkty/10118",
+    "https://aur-ora.com/catalog/zdorove/643",
+    "https://aur-ora.com/catalog/zdorove/9130"
+]
+
+# Словарь для отслеживания позиции каждого пользователя
+user_carousel_positions = {}
+
+# Загрузка данных товара с сайта (через requests)
+def fetch_product_data_sync(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    title = soup.find("h1").text.strip()
+    description_tag = soup.find("div", class_="description")
+    description = description_tag.text.strip() if description_tag else "Нет описания"
+    img_tag = soup.find("img")
+    img_url = "https://aur-ora.com" + img_tag["src"] if img_tag and img_tag.get("src") else None
+
+    return title, description, img_url
+
+# Асинхронная обертка для requests
+async def fetch_product_data(url):
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, fetch_product_data_sync, url)
+
+# Отправка информации о текущем товаре
+async def send_product(user_id):
+    index = user_carousel_positions.get(user_id, 0)
+    if index >= len(PRODUCT_URLS):
+        await bot.send_message(user_id, "Вы просмотрели все товары.", reply_markup=main_menu)
+        return
+
+    url = PRODUCT_URLS[index]
+    title, description, img_url = await fetch_product_data(url)
+
+    caption = f"<b>{title}</b>\n\n{description}\n\n<a href='{url}'>Перейти на сайт</a>"
+
+    # Кнопки "Назад", "Дальше" и "Назад в меню"
     markup = InlineKeyboardMarkup(row_width=2)
-    markup.add(
-        InlineKeyboardButton("Для волос", callback_data="hair"),
-        InlineKeyboardButton("Для суставов", callback_data="joints"),
-        InlineKeyboardButton("Для печени", callback_data="liver"),
-        InlineKeyboardButton("Витамины", callback_data="vitamins"),
-        InlineKeyboardButton("Задать вопрос", callback_data="ask_question"),
-        InlineKeyboardButton("Сообщить об ошибке", callback_data="report_error")
-    )
-    return markup
+    buttons = []
+    if index > 0:
+        buttons.append(InlineKeyboardButton("⬅ Назад", callback_data="prev_product"))
+    if index < len(PRODUCT_URLS) - 1:
+        buttons.append(InlineKeyboardButton("➡ Дальше", callback_data="next_product"))
+    markup.row(*buttons)
+    markup.add(InlineKeyboardButton("🏠 Назад в меню", callback_data="back_to_menu"))
 
-# Обработчик команды /start и /menu
+    await bot.send_photo(
+        chat_id=user_id,
+        photo=img_url,
+        caption=caption,
+        parse_mode="HTML",
+        reply_markup=markup
+    )
+
+# Команда /start и /menu
 @dp.message_handler(commands=["start", "menu"])
 async def send_welcome(message: types.Message):
-    await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
+    await message.answer("Выбери что тебе подходит:", reply_markup=main_menu)
 
-# Обработчик команды /registration
+# Команда /registration
 @dp.message_handler(commands=["registration"])
-async def send_registration_link(message: types.Message):
-    await message.answer("Ссылка для регистрации: https://aur-ora.com/auth/registration/666282189484")
+async def registration_command(message: types.Message):
+    await message.answer("https://aur-ora.com/auth/registration/666282189484")
 
-# Обработчик команды /catalog
+# Команда /catalog
 @dp.message_handler(commands=["catalog"])
-async def send_catalog_link(message: types.Message):
-    await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty/")
+async def catalog_command(message: types.Message):
+    await message.answer("https://aur-ora.com/catalog/vse_produkty/")
 
-# Обработчик нажатий на inline-кнопки
-@dp.callback_query_handler(lambda c: True)
-async def handle_callback(callback_query: types.CallbackQuery):
-    data = callback_query.data  # Получаем значение callback_data
-    user_id = callback_query.from_user.id
+# Обработка нажатий на кнопки меню
+@dp.callback_query_handler()
+async def process_callback(callback_query: types.CallbackQuery):
+    data = callback_query.data
 
-    # Ветвим логику по содержимому callback_data
-    if data == "check_address":
-        await bot.send_message(user_id, "Введите свой город:")
-
+    if data == "registration":
+        await bot.send_message(callback_query.from_user.id, "https://aur-ora.com/auth/registration/666282189484")
+    elif data == "check_address":
+        await bot.send_message(callback_query.from_user.id, "Введите свой город")
     elif data == "select_product":
-        await bot.send_message(user_id, "Выберите категорию продукта:", reply_markup=product_menu())
-
+        await bot.send_message(callback_query.from_user.id, "Выберите категорию:", reply_markup=product_menu)
     elif data == "ask_question":
-        await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат, и я обязательно на него отвечу.")
-
+        await bot.send_message(callback_query.from_user.id, "Напишите ваш вопрос в чат и я обязательно на него отвечу")
     elif data == "report_error":
-        await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
+        await bot.send_message(callback_query.from_user.id, "Расскажите подробнее об ошибке, чтобы я смогла ее исправить и сделать бота лучше")
+    elif data == "back_to_menu":
+        await bot.send_message(callback_query.from_user.id, "Выбери что тебе подходит:", reply_markup=main_menu)
 
-    elif data in ["hair", "joints", "liver", "vitamins"]:
-        await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
+# Обработка кнопки "Для печени"
+@dp.callback_query_handler(lambda c: c.data == "liver")
+async def handle_liver(callback_query: types.CallbackQuery):
+    user_id = callback_query.from_user.id
+    user_carousel_positions[user_id] = 0
+    await send_product(user_id)
 
-    # Отвечаем Telegram, чтобы убрать "крутилку" на кнопке
-    await bot.answer_callback_query(callback_query.id)
+# Обработка кнопки "дальше"
+@dp.callback_query_handler(lambda c: c.data == "next_product")
+async def next_product(callback_query: types.CallbackQuery):
+    user_id = callback_query.from_user.id
+    user_carousel_positions[user_id] += 1
+    await send_product(user_id)
 
-# Обработчик текстовых сообщений (не команд)
-@dp.message_handler(lambda message: message.text and not message.text.startswith("/"))
-async def forward_user_message(message: types.Message):
-    # Пересылаем сообщение админу
-    await bot.send_message(
-        ADMIN_ID,
-        f"📩 Сообщение от @{message.from_user.username or 'без username'} (ID: {message.from_user.id}):\n\n{message.text}"
-    )
-    # Отвечаем пользователю, что сообщение отправлено
-    await message.reply("✅ Ваше сообщение отправлено. Ожидайте ответа.")
+# Обработка кнопки "назад"
+@dp.callback_query_handler(lambda c: c.data == "prev_product")
+async def prev_product(callback_query: types.CallbackQuery):
+    user_id = callback_query.from_user.id
+    user_carousel_positions[user_id] = max(0, user_carousel_positions[user_id] - 1)
+    await send_product(user_id)
 
-# Запускаем бота
-if __name__ == "__main__":
+# Запуск бота
+if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
 
