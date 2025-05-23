@@ -135,12 +135,7 @@ async def prev_product(callback_query: types.CallbackQuery):
     user_carousel_positions[user_id] = max(0, user_carousel_positions.get(user_id, 0) - 1)
     await send_product(user_id)
 
-# Общий обработчик для остальных callback кнопок
-@dp.callback_query_handler(lambda c: c.data not in ["liver", "next_product", "prev_product"])
-async def process_callback(callback_query: types.CallbackQuery):
-    await callback_query.answer()
-    data = callback_query.data
-
+    
     if data == "registration":
         await bot.send_message(callback_query.from_user.id, "https://aur-ora.com/auth/registration/666282189484")
     elif data == "check_address":
@@ -153,6 +148,13 @@ async def process_callback(callback_query: types.CallbackQuery):
         await bot.send_message(callback_query.from_user.id, "Расскажите подробнее об ошибке, чтобы я смогла ее исправить и сделать бота лучше")
     elif data == "back_to_menu":
         await bot.send_message(callback_query.from_user.id, "Выбери что тебе подходит:", reply_markup=main_menu)
+
+# Обработка прочих кнопок меню (универсальный обработчик — должен быть последним!)
+@dp.callback_query_handler()
+async def process_callback(callback_query: types.CallbackQuery):
+await callback_query.answer()
+    data = callback_query.data
+
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
