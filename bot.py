@@ -17,11 +17,14 @@ dp = Dispatcher(bot)
 
 # Функция, создающая главное меню (inline-кнопки)
 def main_menu():
-    markup = InlineKeyboardMarkup(row_width=2)  # 2 кнопки в ряд
+    markup = InlineKeyboardMarkup(row_width=1)  # 2 кнопки в ряд
     markup.add(
-        InlineKeyboardButton("Регистрация", url="https://aur-ora.com/auth/registration/666282189484"),
-        InlineKeyboardButton("Проверить адрес", callback_data="check_address"),
-        InlineKeyboardButton("Выбрать продукт", callback_data="select_product")
+        InlineKeyboardButton("Регистрация 💚", url="https://aur-ora.com/auth/registration/666282189484"),
+        InlineKeyboardButton("1️⃣ Подборка продуктов", callback_data="select_product"),
+        InlineKeyboardButton("2️⃣ Задать вопрос", callback_data="ask_question"),
+        InlineKeyboardButton("3️⃣ Каталог всех продуктов", callback_data="adres_magazines"),
+        InlineKeyboardButton("4️⃣ Адреса магазинов", callback_data="adres_magazines"),
+        InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
     )
     return markup
 
@@ -32,8 +35,7 @@ def product_menu():
         InlineKeyboardButton("Для волос", callback_data="hair"),
         InlineKeyboardButton("Для суставов", callback_data="joints"),
         InlineKeyboardButton("Для печени", callback_data="liver"),
-        InlineKeyboardButton("Витамины", callback_data="vitamins"),
-        InlineKeyboardButton("Задать вопрос", callback_data="ask_question"),
+        InlineKeyboardButton("Витамины", callback_data="vitamins"),        
         InlineKeyboardButton("Сообщить об ошибке", callback_data="report_error")
     )
     return markup
@@ -68,6 +70,27 @@ async def handle_callback(callback_query: types.CallbackQuery):
 
     elif data == "ask_question":
         await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат, и я обязательно на него отвечу.")
+
+    elif data == "adres_magazines":
+        await bot.send_message(user_id, "✉️ ВЫберите город.")
+    
+    def select_city():
+    markup = InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        InlineKeyboardButton("Минск", callback_data="Minsk"),
+        InlineKeyboardButton("Гомель", callback_data="Gomel"),
+        InlineKeyboardButton("Брест", callback_data="Brest"),
+        InlineKeyboardButton("Витеск", callback_data="Vitebsk"),        
+        InlineKeyboardButton("Могилев", callback_data="Mogelev")  
+
+        elif data == "Minsk":
+        await bot.send_message(user_id, "Адрес
+Калининец, Наро-Фоминский р-он, Московскя обл., Россия
+Телефон
++7 915 063 3557
+Мессенджеры
+telegram@Elena_Mikylina
+whatsapp+7 915 063 3557")
 
     elif data == "report_error":
         await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
