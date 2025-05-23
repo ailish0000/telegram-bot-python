@@ -29,12 +29,12 @@ if SSL_AVAILABLE:
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
-            InlineKeyboardButton("\u2705 Регистрация 💚", url="https://aur-ora.com/auth/registration/666282189484"),
+           InlineKeyboardButton("Регистрация 💚", web_app=WebAppInfo(url="https://aur-ora.com/auth/registration/666282189484")),
             InlineKeyboardButton("1️⃣ Подборка продуктов", callback_data="select_product"),
-            InlineKeyboardButton("2️⃣ Каталог всех продуктов", callback_data="catalog"),                        
-            InlineKeyboardButton("3️⃣ Адреса магазинов", callback_data="check_city"),
-            InlineKeyboardButton("4️⃣ Задать вопрос", callback_data="ask_question"),
-            InlineKeyboardButton("\u274C Сообщить об ошибке ❌", callback_data="report_error")
+            InlineKeyboardButton("2️⃣ Задать вопрос", callback_data="ask_question"),
+            InlineKeyboardButton("3️⃣ Каталог всех продуктов", callback_data="catalog"),
+            InlineKeyboardButton("4️⃣ Адреса магазинов", callback_data="check_city"),
+            InlineKeyboardButton("Сообщить об ошибке ❌", web_app=WebAppInfo(url="https://aur-ora.com/feedback"))
         )
         return markup
 
