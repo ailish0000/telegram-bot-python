@@ -52,7 +52,7 @@ if SSL_AVAILABLE:
 
     # Меню выбора города
     def city_menu():
-        markup = InlineKeyboardMarkup(row_width=2)
+        markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
             InlineKeyboardButton("Минск", callback_data="Minsk"),
             InlineKeyboardButton("Гомель", callback_data="Gomel"),
