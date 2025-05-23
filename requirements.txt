@@ -1,6 +1,6 @@
 aiogram==2.25.1
-aiogram
-aiohttp
 beautifulsoup4
+requests
+
 
 
