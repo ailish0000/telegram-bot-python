@@ -111,28 +111,20 @@ async def registration_command(message: types.Message):
 async def catalog_command(message: types.Message):
     await message.answer("https://aur-ora.com/catalog/vse_produkty/")
 
-# Обработка кнопки "Для печени"
-@dp.callback_query_handler(lambda c: c.data == "liver")
-async def handle_liver(callback_query: types.CallbackQuery):
-    await callback_query.answer()  # Убирает "часики" после нажатия кнопки
-    user_id = callback_query.from_user.id
-    user_carousel_positions[user_id] = 0
-    await send_product(user_id)
-
-# Обработка кнопки "дальше"
-@dp.callback_query_handler(lambda c: c.data == "next_product")
-async def next_product(callback_query: types.CallbackQuery):
+# Обработка кнопок продуктов
+@dp.callback_query_handler(lambda c: c.data in ["liver", "next_product", "prev_product"])
+async def handle_carousel(callback_query: types.CallbackQuery):
     await callback_query.answer()
     user_id = callback_query.from_user.id
-    user_carousel_positions[user_id] += 1
-    await send_product(user_id)
+    data = callback_query.data
 
-# Обработка кнопки "назад"
-@dp.callback_query_handler(lambda c: c.data == "prev_product")
-async def prev_product(callback_query: types.CallbackQuery):
-    await callback_query.answer()
-    user_id = callback_query.from_user.id
-    user_carousel_positions[user_id] = max(0, user_carousel_positions[user_id] - 1)
+    if data == "liver":
+        user_carousel_positions[user_id] = 0
+    elif data == "next_product":
+        user_carousel_positions[user_id] += 1
+    elif data == "prev_product":
+        user_carousel_positions[user_id] = max(0, user_carousel_positions[user_id] - 1)
+
     await send_product(user_id)
 
 # Обработка нажатий на остальные кнопки меню (должна быть последней!)
@@ -155,6 +147,5 @@ async def process_callback(callback_query: types.CallbackQuery):
 
 # Запуск бота
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=False)
-
+    executor.start_polling(dp, skip_updates=True)
 
