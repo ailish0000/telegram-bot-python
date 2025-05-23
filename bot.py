@@ -111,24 +111,6 @@ async def registration_command(message: types.Message):
 async def catalog_command(message: types.Message):
     await message.answer("https://aur-ora.com/catalog/vse_produkty/")
 
-# Обработка нажатий на кнопки меню
-@dp.callback_query_handler()
-async def process_callback(callback_query: types.CallbackQuery):
-    data = callback_query.data
-
-    if data == "registration":
-        await bot.send_message(callback_query.from_user.id, "https://aur-ora.com/auth/registration/666282189484")
-    elif data == "check_address":
-        await bot.send_message(callback_query.from_user.id, "Введите свой город")
-    elif data == "select_product":
-        await bot.send_message(callback_query.from_user.id, "Выберите категорию:", reply_markup=product_menu)
-    elif data == "ask_question":
-        await bot.send_message(callback_query.from_user.id, "Напишите ваш вопрос в чат и я обязательно на него отвечу")
-    elif data == "report_error":
-        await bot.send_message(callback_query.from_user.id, "Расскажите подробнее об ошибке, чтобы я смогла ее исправить и сделать бота лучше")
-    elif data == "back_to_menu":
-        await bot.send_message(callback_query.from_user.id, "Выбери что тебе подходит:", reply_markup=main_menu)
-
 # Обработка кнопки "Для печени"
 @dp.callback_query_handler(lambda c: c.data == "liver")
 async def handle_liver(callback_query: types.CallbackQuery):
@@ -153,11 +135,24 @@ async def prev_product(callback_query: types.CallbackQuery):
     user_carousel_positions[user_id] = max(0, user_carousel_positions[user_id] - 1)
     await send_product(user_id)
 
+# Обработка нажатий на остальные кнопки меню
+@dp.callback_query_handler()
+async def process_callback(callback_query: types.CallbackQuery):
+    data = callback_query.data
+
+    if data == "registration":
+        await bot.send_message(callback_query.from_user.id, "https://aur-ora.com/auth/registration/666282189484")
+    elif data == "check_address":
+        await bot.send_message(callback_query.from_user.id, "Введите свой город")
+    elif data == "select_product":
+        await bot.send_message(callback_query.from_user.id, "Выберите категорию:", reply_markup=product_menu)
+    elif data == "ask_question":
+        await bot.send_message(callback_query.from_user.id, "Напишите ваш вопрос в чат и я обязательно на него отвечу")
+    elif data == "report_error":
+        await bot.send_message(callback_query.from_user.id, "Расскажите подробнее об ошибке, чтобы я смогла ее исправить и сделать бота лучше")
+    elif data == "back_to_menu":
+        await bot.send_message(callback_query.from_user.id, "Выбери что тебе подходит:", reply_markup=main_menu)
+
 # Запуск бота
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
-
-if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
-
-наташка
