@@ -111,6 +111,7 @@ async def registration_command(message: types.Message):
 async def catalog_command(message: types.Message):
     await message.answer("https://aur-ora.com/catalog/vse_produkty/")
 
+# Обработчик для кнопки "Для печени"
 @dp.callback_query_handler(lambda c: c.data == "liver")
 async def handle_liver(callback_query: types.CallbackQuery):
     await callback_query.answer()
@@ -118,6 +119,27 @@ async def handle_liver(callback_query: types.CallbackQuery):
     user_carousel_positions[user_id] = 0
     await send_product(user_id)
 
+# Обработчик "дальше"
+@dp.callback_query_handler(lambda c: c.data == "next_product")
+async def next_product(callback_query: types.CallbackQuery):
+    await callback_query.answer()
+    user_id = callback_query.from_user.id
+    user_carousel_positions[user_id] += 1
+    await send_product(user_id)
+
+# Обработчик "назад"
+@dp.callback_query_handler(lambda c: c.data == "prev_product")
+async def prev_product(callback_query: types.CallbackQuery):
+    await callback_query.answer()
+    user_id = callback_query.from_user.id
+    user_carousel_positions[user_id] = max(0, user_carousel_positions[user_id] - 1)
+    await send_product(user_id)
+
+# Общий обработчик для остальных callback'ов
+@dp.callback_query_handler(lambda c: c.data not in ["liver", "next_product", "prev_product"])
+async def process_callback(callback_query: types.CallbackQuery):
+    await callback_query.answer()
+    data = callback_query.data
 
     if data == "registration":
         await bot.send_message(callback_query.from_user.id, "https://aur-ora.com/auth/registration/666282189484")
@@ -132,26 +154,6 @@ async def handle_liver(callback_query: types.CallbackQuery):
     elif data == "back_to_menu":
         await bot.send_message(callback_query.from_user.id, "Выбери что тебе подходит:", reply_markup=main_menu)
 
-# Обработка кнопки "Для печени"
-@dp.callback_query_handler(lambda c: c.data == "liver")
-async def handle_liver(callback_query: types.CallbackQuery):
-    user_id = callback_query.from_user.id
-    user_carousel_positions[user_id] = 0
-    await send_product(user_id)
-
-# Обработка кнопки "дальше"
-@dp.callback_query_handler(lambda c: c.data == "next_product")
-async def next_product(callback_query: types.CallbackQuery):
-    user_id = callback_query.from_user.id
-    user_carousel_positions[user_id] += 1
-    await send_product(user_id)
-
-# Обработка кнопки "назад"
-@dp.callback_query_handler(lambda c: c.data == "prev_product")
-async def prev_product(callback_query: types.CallbackQuery):
-    user_id = callback_query.from_user.id
-    user_carousel_positions[user_id] = max(0, user_carousel_positions[user_id] - 1)
-    await send_product(user_id)
 
 # Запуск бота
 if __name__ == '__main__':
