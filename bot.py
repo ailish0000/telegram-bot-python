@@ -7,7 +7,7 @@ import asyncio
 import os
 import requests  # Используем requests вместо aiohttp
 
-# Включаем логирование
+# Включаем логирование для отладки
 logging.basicConfig(level=logging.INFO)
 
 # Токен из переменной окружения
@@ -18,7 +18,7 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 
 # Главное меню с кнопками
-main_menu = InlineKeyboardMarkup(row_width=1)
+main_menu = InlineKeyboardMarkup(row_width=2)
 main_menu.add(
     InlineKeyboardButton("Регистрация", callback_data="registration"),
     InlineKeyboardButton("Проверить адрес", callback_data="check_address"),
@@ -36,7 +36,7 @@ product_menu.add(
     InlineKeyboardButton("Сообщить об ошибке", callback_data="report_error")
 )
 
-# Ссылки на продукты (для карусели)
+# Ссылки на продукты для карусели
 PRODUCT_URLS = [
     "https://aur-ora.com/catalog/zdorove/640",
     "https://aur-ora.com/catalog/aktsii_3_a/703",
@@ -45,15 +45,15 @@ PRODUCT_URLS = [
     "https://aur-ora.com/catalog/zdorove/9130"
 ]
 
-# Словарь для отслеживания позиции каждого пользователя
+# Словарь для отслеживания позиции каждого пользователя в карусели
 user_carousel_positions = {}
 
-# Загрузка данных товара с сайта (через requests)
+# Функция синхронной загрузки данных товара с сайта
 def fetch_product_data_sync(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    title = soup.find("h1").text.strip()
+    title = soup.find("h1").text.strip() if soup.find("h1") else "Без названия"
     description_tag = soup.find("div", class_="description")
     description = description_tag.text.strip() if description_tag else "Нет описания"
     img_tag = soup.find("img")
@@ -61,12 +61,12 @@ def fetch_product_data_sync(url):
 
     return title, description, img_url
 
-# Асинхронная обертка для requests
+# Асинхронная обертка для requests, чтобы не блокировать event loop
 async def fetch_product_data(url):
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, fetch_product_data_sync, url)
 
-# Отправка информации о текущем товаре
+# Функция отправки продукта пользователю с кнопками карусели
 async def send_product(user_id):
     index = user_carousel_positions.get(user_id, 0)
     if index >= len(PRODUCT_URLS):
@@ -78,14 +78,14 @@ async def send_product(user_id):
 
     caption = f"<b>{title}</b>\n\n{description}\n\n<a href='{url}'>Перейти на сайт</a>"
 
-    # Кнопки "Назад", "Дальше" и "Назад в меню"
     markup = InlineKeyboardMarkup(row_width=2)
     buttons = []
     if index > 0:
         buttons.append(InlineKeyboardButton("⬅ Назад", callback_data="prev_product"))
     if index < len(PRODUCT_URLS) - 1:
         buttons.append(InlineKeyboardButton("➡ Дальше", callback_data="next_product"))
-    markup.row(*buttons)
+    if buttons:
+        markup.row(*buttons)
     markup.add(InlineKeyboardButton("🏠 Назад в меню", callback_data="back_to_menu"))
 
     await bot.send_photo(
@@ -96,22 +96,22 @@ async def send_product(user_id):
         reply_markup=markup
     )
 
-# Команда /start и /menu
+# Обработчики команд /start и /menu
 @dp.message_handler(commands=["start", "menu"])
 async def send_welcome(message: types.Message):
     await message.answer("Выбери что тебе подходит:", reply_markup=main_menu)
 
-# Команда /registration
+# Обработчик команды /registration
 @dp.message_handler(commands=["registration"])
 async def registration_command(message: types.Message):
     await message.answer("https://aur-ora.com/auth/registration/666282189484")
 
-# Команда /catalog
+# Обработчик команды /catalog
 @dp.message_handler(commands=["catalog"])
 async def catalog_command(message: types.Message):
     await message.answer("https://aur-ora.com/catalog/vse_produkty/")
 
-# Обработчик для кнопки "Для печени"
+# Обработчик кнопки "Для печени" — запускает карусель
 @dp.callback_query_handler(lambda c: c.data == "liver")
 async def handle_liver(callback_query: types.CallbackQuery):
     await callback_query.answer()
@@ -119,23 +119,23 @@ async def handle_liver(callback_query: types.CallbackQuery):
     user_carousel_positions[user_id] = 0
     await send_product(user_id)
 
-# Обработчик "дальше"
+# Обработчик кнопки "дальше"
 @dp.callback_query_handler(lambda c: c.data == "next_product")
 async def next_product(callback_query: types.CallbackQuery):
     await callback_query.answer()
     user_id = callback_query.from_user.id
-    user_carousel_positions[user_id] += 1
+    user_carousel_positions[user_id] = min(user_carousel_positions.get(user_id, 0) + 1, len(PRODUCT_URLS) - 1)
     await send_product(user_id)
 
-# Обработчик "назад"
+# Обработчик кнопки "назад"
 @dp.callback_query_handler(lambda c: c.data == "prev_product")
 async def prev_product(callback_query: types.CallbackQuery):
     await callback_query.answer()
     user_id = callback_query.from_user.id
-    user_carousel_positions[user_id] = max(0, user_carousel_positions[user_id] - 1)
+    user_carousel_positions[user_id] = max(0, user_carousel_positions.get(user_id, 0) - 1)
     await send_product(user_id)
 
-# Общий обработчик для остальных callback'ов
+# Общий обработчик для остальных callback кнопок
 @dp.callback_query_handler(lambda c: c.data not in ["liver", "next_product", "prev_product"])
 async def process_callback(callback_query: types.CallbackQuery):
     await callback_query.answer()
@@ -154,8 +154,6 @@ async def process_callback(callback_query: types.CallbackQuery):
     elif data == "back_to_menu":
         await bot.send_message(callback_query.from_user.id, "Выбери что тебе подходит:", reply_markup=main_menu)
 
-
-# Запуск бота
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
 
