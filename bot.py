@@ -29,12 +29,11 @@ if SSL_AVAILABLE:
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
-           InlineKeyboardButton("Регистрация 💚", url="https://aur-ora.com/auth/registration/666282189484"),
+            InlineKeyboardButton("Регистрация 💚", url="https://aur-ora.com/auth/registration/666282189484"),
             InlineKeyboardButton("1️⃣ Подборка продуктов", callback_data="select_product"),
             InlineKeyboardButton("2️⃣ Задать вопрос", callback_data="ask_question"),
             InlineKeyboardButton("3️⃣ Каталог всех продуктов", callback_data="catalog"),
-            InlineKeyboardButton("4️⃣ Адреса магазинов", callback_data="check_city"),
-            InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
+            InlineKeyboardButton("4️⃣ Адреса магазинов", callback_data="check_city")    
         )
         return markup
 
@@ -46,7 +45,7 @@ if SSL_AVAILABLE:
             InlineKeyboardButton("Для суставов", callback_data="joints"),
             InlineKeyboardButton("Для печени", callback_data="liver"),
             InlineKeyboardButton("Витамины", callback_data="vitamins"),
-            InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
+            InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")          
         )
         return markup
 
@@ -60,30 +59,45 @@ if SSL_AVAILABLE:
             InlineKeyboardButton("Витебск", callback_data="Vitebsk"),
             InlineKeyboardButton("Могилев", callback_data="Mogilev"),
             InlineKeyboardButton("Нет моего города", callback_data="none_city"),
-            InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
+            InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")            
         )
         return markup
 
     # Обработчик команды /start и /menu
     @dp.message_handler(commands=["start", "menu"])
     async def send_welcome(message: types.Message):
-        await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
+        sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
+        try:
+            await message.delete()
+        except:
+            pass
 
     # Обработчик команды /registration
     @dp.message_handler(commands=["registration"])
     async def send_registration_link(message: types.Message):
-        await message.answer("Ссылка для регистрации: https://aur-ora.com/auth/registration/666282189484")
+        sent = await message.answer("Ссылка для регистрации: https://aur-ora.com/auth/registration/666282189484")
+        try:
+            await message.delete()
+        except:
+            pass
 
     # Обработчик команды /catalog
     @dp.message_handler(commands=["catalog"])
     async def send_catalog_link(message: types.Message):
-        await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty/")
+        sent = await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty/")
+        try:
+            await message.delete()
+        except:
+            pass
 
     # Обработчик нажатий на inline-кнопки
     @dp.callback_query_handler(lambda c: True)
     async def handle_callback(callback_query: types.CallbackQuery):
         data = callback_query.data
         user_id = callback_query.from_user.id
+        message_id = callback_query.message.message_id
+
+        await bot.delete_message(chat_id=user_id, message_id=message_id)
 
         if data == "check_address":
             await bot.send_message(user_id, "Введите свой город:")
@@ -96,6 +110,9 @@ if SSL_AVAILABLE:
 
         elif data == "check_city":
             await bot.send_message(user_id, "Выберите город:", reply_markup=city_menu())
+
+        elif data == "back_to_main":
+            await bot.send_message(user_id, "Выбери, что тебе подходит 👇", reply_markup=main_menu())
 
         elif data == "Minsk":
             await bot.send_message(user_id, "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 0000")
@@ -130,6 +147,4 @@ if SSL_AVAILABLE:
         executor.start_polling(dp, skip_updates=True)
 else:
     print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS.")
-
-
 
