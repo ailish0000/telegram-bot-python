@@ -75,10 +75,14 @@ if SSL_AVAILABLE:
         except:
             pass
 
-    # Обработчик команды /menu — без Таноса
+    # Обработчик команды /menu — теперь тоже с "эффектом Таноса"
     @dp.message_handler(commands=["menu"])
     async def send_menu(message: types.Message):
-        await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
+        sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
+        try:
+            await message.delete()
+        except:
+            pass
 
     # Обработчик команды /registration
     @dp.message_handler(commands=["registration"])
@@ -92,7 +96,7 @@ if SSL_AVAILABLE:
     # Обработчик команды /catalog
     @dp.message_handler(commands=["catalog"])
     async def send_catalog_link(message: types.Message):
-        sent = await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty/")
+        sent = await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty")
         try:
             await message.delete()
         except:
