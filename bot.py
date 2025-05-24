@@ -196,15 +196,15 @@ if SSL_AVAILABLE:
             elif step == "3":
                 markup = InlineKeyboardMarkup(row_width=2)
                 markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/")
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/")
                 )
                 markup.add(
                     InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2")
                 )
                 await bot.send_photo(
                     chat_id=user_id,
-                    photo="https://example.com/product3.jpg",
-                    caption="3️⃣ Пример третьего продукта.",
+                    photo="https://github.com/user-attachments/assets/df53f6da-2cdd-4d75-b20e-0206c3252456",
+                    caption="3️⃣ Коллоидное серебро. Природный антибиотик.",
                     reply_markup=markup
                 )
 
