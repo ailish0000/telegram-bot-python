@@ -42,36 +42,33 @@ if SSL_AVAILABLE:
     def product_menu():
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
-            InlineKeyboardButton("От простуды", callback_data="prostuda"),
-                          
-            InlineKeyboardButton("Волосы/ногти", callback_data="hair"),                     
+            InlineKeyboardButton("От простуды", callback_data="prostuda_1"),
+            InlineKeyboardButton("Волосы/ногти", callback_data="hair"),
             InlineKeyboardButton("Для суставов", callback_data="joints"),
             InlineKeyboardButton("Для печени", callback_data="liver"),
             InlineKeyboardButton("Витамины", callback_data="vitamins"),
             InlineKeyboardButton("Антипаразитарка", callback_data="antiparazit"),
-            InlineKeyboardButton("Сорбенты", callback_data="sorbent"),               
-            InlineKeyboardButton("Личный топ", callback_data="top"),               
+            InlineKeyboardButton("Сорбенты", callback_data="sorbent"),
+            InlineKeyboardButton("Личный топ", callback_data="top"),
             InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
-            
         )
         return markup
 
     def city_menu():
         markup = InlineKeyboardMarkup(row_width=1)
-        markup.add(           
+        markup.add(
             InlineKeyboardButton("Минск", callback_data="Minsk"),
-            InlineKeyboardButton("Минская область", callback_data="Minsk_region"),            
+            InlineKeyboardButton("Минская область", callback_data="Minsk_region"),
             InlineKeyboardButton("Гомель", callback_data="Gomel"),
-            InlineKeyboardButton("Гомельская область", callback_data="Gomel_region"),             
+            InlineKeyboardButton("Гомельская область", callback_data="Gomel_region"),
             InlineKeyboardButton("Брест", callback_data="Brest"),
-            InlineKeyboardButton("Брестская область", callback_data="Brest_region"),             
+            InlineKeyboardButton("Брестская область", callback_data="Brest_region"),
             InlineKeyboardButton("Витебск", callback_data="Vitebsk"),
-            InlineKeyboardButton("Витебская область", callback_data="Vitebsk_region"),             
+            InlineKeyboardButton("Витебская область", callback_data="Vitebsk_region"),
             InlineKeyboardButton("Могилев", callback_data="Mogilev"),
-            InlineKeyboardButton("Могилевская область", callback_data="Mogilev_region"),             
+            InlineKeyboardButton("Могилевская область", callback_data="Mogilev_region"),
             InlineKeyboardButton("Нет моего города", callback_data="none_city"),
             InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
-            
         )
         return markup
 
@@ -174,19 +171,53 @@ if SSL_AVAILABLE:
         elif data == "report_error":
             await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
-        elif data == "prostuda":
-            # Отправляем картинку с описанием и кнопкой подробнее + назад
-            markup = InlineKeyboardMarkup(row_width=1)
-            markup.add(
-                InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/"),
-                InlineKeyboardButton("◀️ Назад", callback_data="select_product")
-            )
-            await bot.send_photo(
-                chat_id=user_id,
-                photo="https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64",
-                caption="Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром",
-                reply_markup=markup
-            )
+        # Обработка продуктов "От простуды" с листанием
+        elif data.startswith("prostuda"):
+            # определяем номер продукта
+            parts = data.split("_")
+            step = parts[1] if len(parts) > 1 else "1"
+
+            if step == "1":
+                markup = InlineKeyboardMarkup(row_width=1)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_2"),
+                    InlineKeyboardButton("◀️ Назад", callback_data="select_product")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64",
+                    caption="1️⃣ Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром",
+                    reply_markup=markup
+                )
+
+            elif step == "2":
+                markup = InlineKeyboardMarkup(row_width=1)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/"),
+                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_1"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_3")  # Если будет 3-й продукт, можно потом поправить
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1",
+                    caption="2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром",
+                    reply_markup=markup
+                )
+
+            elif step == "3":
+                # Здесь пример третьего продукта, если его пока нет, можно заменить или убрать
+                markup = InlineKeyboardMarkup(row_width=1)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/"),  # заменить при необходимости
+                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/product3.jpg",  # заменить на реальную картинку 3-го продукта
+                    caption="3️⃣ Пример третьего продукта.",
+                    reply_markup=markup
+                )
 
         elif data in ["joints", "liver", "vitamins"]:
             await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
