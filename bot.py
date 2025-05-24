@@ -33,7 +33,8 @@ if SSL_AVAILABLE:
             InlineKeyboardButton("1️⃣ Подборка продуктов", callback_data="select_product"),
             InlineKeyboardButton("2️⃣ Задать вопрос", callback_data="ask_question"),
             InlineKeyboardButton("3️⃣ Каталог всех продуктов", callback_data="catalog"),
-            InlineKeyboardButton("4️⃣ Адреса магазинов", callback_data="check_city")    
+            InlineKeyboardButton("4️⃣ Адреса магазинов", callback_data="check_city"),
+            InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
         )
         return markup
 
@@ -45,7 +46,8 @@ if SSL_AVAILABLE:
             InlineKeyboardButton("Для суставов", callback_data="joints"),
             InlineKeyboardButton("Для печени", callback_data="liver"),
             InlineKeyboardButton("Витамины", callback_data="vitamins"),
-            InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")          
+            InlineKeyboardButton("◀️ Назад", callback_data="back_to_main"),
+            InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
         )
         return markup
 
@@ -59,18 +61,24 @@ if SSL_AVAILABLE:
             InlineKeyboardButton("Витебск", callback_data="Vitebsk"),
             InlineKeyboardButton("Могилев", callback_data="Mogilev"),
             InlineKeyboardButton("Нет моего города", callback_data="none_city"),
-            InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")            
+            InlineKeyboardButton("◀️ Назад", callback_data="back_to_main"),
+            InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
         )
         return markup
 
-    # Обработчик команды /start и /menu
-    @dp.message_handler(commands=["start", "menu"])
-    async def send_welcome(message: types.Message):
+    # Обработчик команды /start
+    @dp.message_handler(commands=["start"])
+    async def send_start(message: types.Message):
         sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
         try:
             await message.delete()
         except:
             pass
+
+    # Обработчик команды /menu — без Таноса
+    @dp.message_handler(commands=["menu"])
+    async def send_menu(message: types.Message):
+        await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
 
     # Обработчик команды /registration
     @dp.message_handler(commands=["registration"])
