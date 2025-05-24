@@ -1,7 +1,7 @@
 # Импортируем нужные модули из aiogram
 import os
-import asyncio
 from dotenv import load_dotenv  # Для загрузки переменных из .env
+import asyncio  # Для паузы
 
 # Проверка на поддержку SSL (важно для aiogram)
 try:
@@ -13,7 +13,7 @@ except ImportError:
 
 if SSL_AVAILABLE:
     from aiogram import Bot, Dispatcher, executor, types
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
     # Загружаем переменные окружения из файла .env
     load_dotenv()
@@ -26,11 +26,11 @@ if SSL_AVAILABLE:
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(bot)
 
-    # Хранилище для отслеживания, вызывалась ли команда /menu ранее
+    # Хранилище для отслеживания, вызывалась ли команда /menu ранее и /start
     user_menu_called = set()
     user_started = set()
 
-    # Функция, создающая главное меню (inline-кнопки)
+    # Главное меню
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
@@ -43,7 +43,7 @@ if SSL_AVAILABLE:
         )
         return markup
 
-    # Функция, создающая меню выбора продукта
+    # Меню выбора продукта с кнопкой назад
     def product_menu():
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
@@ -56,7 +56,7 @@ if SSL_AVAILABLE:
         )
         return markup
 
-    # Меню выбора города
+    # Меню выбора города с кнопкой назад
     def city_menu():
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
@@ -71,7 +71,7 @@ if SSL_AVAILABLE:
         )
         return markup
 
-    # Обработчик команды /start
+    # Обработчик команды /start — отправляет картинку + текст и меню, пауза 6 секунд
     @dp.message_handler(commands=["start"])
     async def send_start(message: types.Message):
         user_id = message.from_user.id
@@ -80,42 +80,50 @@ if SSL_AVAILABLE:
             await bot.send_photo(
                 chat_id=user_id,
                 photo="https://github.com/user-attachments/assets/17dd2122-c5ee-4599-86ac-c7748a3d90ea",
-                caption="Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
+                caption=(
+                    "Привет! Меня зовут Наталья Кумасинская. "
+                    "Я мама двоих сыновей и давно использую продукцию Авроры. "
+                    "Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
+                )
             )
-            await asyncio.sleep(6)
+            await asyncio.sleep(6)  # пауза 6 секунд
+
         sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
         try:
             await message.delete()
         except:
             pass
 
-    # Обработчик команды /menu — всегда с Таносом
+    # Обработчик команды /menu — с эффектом Таноса (удаляет сообщение пользователя и предыдущее бота)
     @dp.message_handler(commands=["menu"])
     async def send_menu(message: types.Message):
         user_id = message.from_user.id
-        sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
+
+        # Эффект Таноса: удаляем сообщение пользователя и предыдущее бота, если возможно
         try:
             await message.delete()
         except:
             pass
+
+        sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
 
     # Обработчик команды /registration
     @dp.message_handler(commands=["registration"])
     async def send_registration_link(message: types.Message):
-        sent = await message.answer("Ссылка для регистрации: https://aur-ora.com/auth/registration/666282189484")
         try:
             await message.delete()
         except:
             pass
+        await message.answer("Ссылка для регистрации: https://aur-ora.com/auth/registration/666282189484")
 
     # Обработчик команды /catalog
     @dp.message_handler(commands=["catalog"])
     async def send_catalog_link(message: types.Message):
-        sent = await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty")
         try:
             await message.delete()
         except:
             pass
+        await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty")
 
     # Обработчик нажатий на inline-кнопки
     @dp.callback_query_handler(lambda c: True)
@@ -124,7 +132,11 @@ if SSL_AVAILABLE:
         user_id = callback_query.from_user.id
         message_id = callback_query.message.message_id
 
-        await bot.delete_message(chat_id=user_id, message_id=message_id)
+        # Эффект Таноса — удаляем сообщение с кнопками
+        try:
+            await bot.delete_message(chat_id=user_id, message_id=message_id)
+        except:
+            pass
 
         if data == "check_address":
             await bot.send_message(user_id, "Введите свой город:")
@@ -155,7 +167,18 @@ if SSL_AVAILABLE:
         elif data == "report_error":
             await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
-        elif data in ["hair", "joints", "liver", "vitamins"]:
+        # Обработка "Для волос" — картинка, подпись, кнопки "Подробнее" и "Назад"
+        elif data == "hair":
+            photo_url = "https://aur-ora.com/upload/iblock/255/2550adbef26e3aa6bceb1882b092e7eb.png"
+            caption = "Антиоксидант с облепихой"
+            markup = InlineKeyboardMarkup(row_width=1)
+            markup.add(
+                InlineKeyboardButton("Подробнее", url="https://aur-ora.com/catalog/zdorove/543/"),
+                InlineKeyboardButton("◀️ Назад", callback_data="select_product")
+            )
+            await bot.send_photo(user_id, photo=photo_url, caption=caption, reply_markup=markup)
+
+        elif data in ["joints", "liver", "vitamins"]:
             await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
 
         await bot.answer_callback_query(callback_query.id)
@@ -172,7 +195,6 @@ if SSL_AVAILABLE:
     # Запускаем бота
     if __name__ == "__main__":
         executor.start_polling(dp, skip_updates=True)
+
 else:
     print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS.")
-
-
