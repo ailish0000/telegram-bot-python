@@ -42,31 +42,31 @@ if SSL_AVAILABLE:
     def product_menu():
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
-            InlineKeyboardButton("От простуды", callback_data="prostuda_1"),
-            InlineKeyboardButton("Волосы/ногти", callback_data="hair"),
+            InlineKeyboardButton("От простуды", callback_data="prostuda"),
+            InlineKeyboardButton("Волосы/ногти", callback_data="hair"),                     
             InlineKeyboardButton("Для суставов", callback_data="joints"),
             InlineKeyboardButton("Для печени", callback_data="liver"),
             InlineKeyboardButton("Витамины", callback_data="vitamins"),
             InlineKeyboardButton("Антипаразитарка", callback_data="antiparazit"),
-            InlineKeyboardButton("Сорбенты", callback_data="sorbent"),
-            InlineKeyboardButton("Личный топ", callback_data="top"),
+            InlineKeyboardButton("Сорбенты", callback_data="sorbent"),               
+            InlineKeyboardButton("Личный топ", callback_data="top"),               
             InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
         )
         return markup
 
     def city_menu():
         markup = InlineKeyboardMarkup(row_width=1)
-        markup.add(
+        markup.add(           
             InlineKeyboardButton("Минск", callback_data="Minsk"),
-            InlineKeyboardButton("Минская область", callback_data="Minsk_region"),
+            InlineKeyboardButton("Минская область", callback_data="Minsk_region"),            
             InlineKeyboardButton("Гомель", callback_data="Gomel"),
-            InlineKeyboardButton("Гомельская область", callback_data="Gomel_region"),
+            InlineKeyboardButton("Гомельская область", callback_data="Gomel_region"),             
             InlineKeyboardButton("Брест", callback_data="Brest"),
-            InlineKeyboardButton("Брестская область", callback_data="Brest_region"),
+            InlineKeyboardButton("Брестская область", callback_data="Brest_region"),             
             InlineKeyboardButton("Витебск", callback_data="Vitebsk"),
-            InlineKeyboardButton("Витебская область", callback_data="Vitebsk_region"),
+            InlineKeyboardButton("Витебская область", callback_data="Vitebsk_region"),             
             InlineKeyboardButton("Могилев", callback_data="Mogilev"),
-            InlineKeyboardButton("Могилевская область", callback_data="Mogilev_region"),
+            InlineKeyboardButton("Могилевская область", callback_data="Mogilev_region"),             
             InlineKeyboardButton("Нет моего города", callback_data="none_city"),
             InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
         )
@@ -78,7 +78,6 @@ if SSL_AVAILABLE:
         except:
             pass
 
-    # Приветствие
     @dp.message_handler(commands=["start"])
     async def send_start(message: types.Message):
         user_id = message.from_user.id
@@ -98,7 +97,6 @@ if SSL_AVAILABLE:
             reply_markup=main_menu()
         )
 
-    # Меню с эффектом Таноса
     @dp.message_handler(commands=["menu"])
     async def send_menu(message: types.Message):
         user_id = message.from_user.id
@@ -157,32 +155,20 @@ if SSL_AVAILABLE:
                 reply_markup=main_menu()
             )
 
-        elif data == "Minsk":
-            await bot.send_message(user_id, "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 0000")
-        elif data == "Gomel":
-            await bot.send_message(user_id, "📍 Гомель: ул. Советская, 45. Тел: +375 29 111 1111")
-        elif data == "Brest":
-            await bot.send_message(user_id, "📍 Брест: ул. Ленина, 10. Тел: +375 29 222 2222")
-        elif data == "Vitebsk":
-            await bot.send_message(user_id, "📍 Витебск: ул. Чкалова, 15. Тел: +375 29 333 3333")
-        elif data == "Mogilev":
-            await bot.send_message(user_id, "📍 Могилев: пр-т Мира, 7. Тел: +375 29 444 4444")
-
         elif data == "report_error":
             await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
-        # Обработка продуктов "От простуды" с листанием
         elif data.startswith("prostuda"):
-            # определяем номер продукта
-            parts = data.split("_")
-            step = parts[1] if len(parts) > 1 else "1"
+            step = data.replace("prostuda", "").strip("_") or "1"
 
             if step == "1":
-                markup = InlineKeyboardMarkup(row_width=1)
+                markup = InlineKeyboardMarkup(row_width=2)
                 markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_2"),
-                    InlineKeyboardButton("◀️ Назад", callback_data="select_product")
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_2")
                 )
                 await bot.send_photo(
                     chat_id=user_id,
@@ -192,11 +178,13 @@ if SSL_AVAILABLE:
                 )
 
             elif step == "2":
-                markup = InlineKeyboardMarkup(row_width=1)
+                markup = InlineKeyboardMarkup(row_width=2)
                 markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/"),
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/")
+                )
+                markup.add(
                     InlineKeyboardButton("◀️ Назад", callback_data="prostuda_1"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_3")  # Если будет 3-й продукт, можно потом поправить
+                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_3")
                 )
                 await bot.send_photo(
                     chat_id=user_id,
@@ -206,21 +194,32 @@ if SSL_AVAILABLE:
                 )
 
             elif step == "3":
-                # Здесь пример третьего продукта, если его пока нет, можно заменить или убрать
-                markup = InlineKeyboardMarkup(row_width=1)
+                markup = InlineKeyboardMarkup(row_width=2)
                 markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/"),  # заменить при необходимости
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/")
+                )
+                markup.add(
                     InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2")
                 )
                 await bot.send_photo(
                     chat_id=user_id,
-                    photo="https://example.com/product3.jpg",  # заменить на реальную картинку 3-го продукта
+                    photo="https://example.com/product3.jpg",
                     caption="3️⃣ Пример третьего продукта.",
                     reply_markup=markup
                 )
 
         elif data in ["joints", "liver", "vitamins"]:
             await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
+
+        elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
+            cities = {
+                "Minsk": "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 0000",
+                "Gomel": "📍 Гомель: ул. Советская, 45. Тел: +375 29 111 1111",
+                "Brest": "📍 Брест: ул. Ленина, 10. Тел: +375 29 222 2222",
+                "Vitebsk": "📍 Витебск: ул. Чкалова, 15. Тел: +375 29 333 3333",
+                "Mogilev": "📍 Могилев: пр-т Мира, 7. Тел: +375 29 444 4444"
+            }
+            await bot.send_message(user_id, cities[data])
 
         await bot.answer_callback_query(callback_query.id)
 
