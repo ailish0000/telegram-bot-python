@@ -66,6 +66,6 @@ Open Telegram, start a chat with your bot, and try the commands `/start` or `
 - [Railway Marketplace](https://railway.app/template/a0ln90)
 
   
-![приветственное сообщение](https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672)
- 
+![приветственное сообщение](https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672) 
 
+![Логотипа Аврора](https://github.com/user-attachments/assets/832593ee-2617-4ef6-9656-ff4d4f9506b8)
