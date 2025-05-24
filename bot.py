@@ -25,6 +25,10 @@ if SSL_AVAILABLE:
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(bot)
 
+    # Хранилище для отслеживания, вызывалась ли команда /menu ранее
+    user_menu_called = set()
+    user_started = set()
+
     # Функция, создающая главное меню (inline-кнопки)
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
@@ -69,20 +73,28 @@ if SSL_AVAILABLE:
     # Обработчик команды /start
     @dp.message_handler(commands=["start"])
     async def send_start(message: types.Message):
+        user_id = message.from_user.id
+        if user_id not in user_started:
+            user_started.add(user_id)
+            await message.answer("Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы")
         sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
         try:
             await message.delete()
         except:
             pass
 
-    # Обработчик команды /menu — теперь тоже с "эффектом Таноса"
+    # Обработчик команды /menu — первая без эффекта Таноса
     @dp.message_handler(commands=["menu"])
     async def send_menu(message: types.Message):
+        user_id = message.from_user.id
         sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
-        try:
-            await message.delete()
-        except:
-            pass
+        if user_id in user_menu_called:
+            try:
+                await message.delete()
+            except:
+                pass
+        else:
+            user_menu_called.add(user_id)
 
     # Обработчик команды /registration
     @dp.message_handler(commands=["registration"])
@@ -159,4 +171,5 @@ if SSL_AVAILABLE:
         executor.start_polling(dp, skip_updates=True)
 else:
     print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS.")
+
 
