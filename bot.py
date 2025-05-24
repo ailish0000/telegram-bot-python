@@ -1,9 +1,8 @@
 # Импортируем нужные модули из aiogram
 import os
+import asyncio
 from dotenv import load_dotenv  # Для загрузки переменных из .env
-import asyncio  # Для паузы
 
-# Проверка на поддержку SSL (важно для aiogram)
 try:
     import ssl
     SSL_AVAILABLE = True
@@ -15,22 +14,19 @@ if SSL_AVAILABLE:
     from aiogram import Bot, Dispatcher, executor, types
     from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-    # Загружаем переменные окружения из файла .env
     load_dotenv()
 
-    # Получаем токен бота и ID администратора из переменных окружения
     BOT_TOKEN = os.getenv("BOT_TOKEN")
-    ADMIN_ID = int(os.getenv("ADMIN_ID"))  # Важно: должен быть числом
+    ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
-    # Создаём экземпляры бота и диспетчера
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(bot)
 
-    # Хранилище для отслеживания, вызывалась ли команда /menu ранее и /start
-    user_menu_called = set()
+    WELCOME_IMAGE = "https://github.com/user-attachments/assets/17dd2122-c5ee-4599-86ac-c7748a3d90ea"
+    MENU_IMAGE = "https://github.com/user-attachments/assets/832593ee-2617-4ef6-9656-ff4d4f9506b8"
+
     user_started = set()
 
-    # Главное меню
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
@@ -43,7 +39,6 @@ if SSL_AVAILABLE:
         )
         return markup
 
-    # Меню выбора продукта с кнопкой назад
     def product_menu():
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
@@ -56,7 +51,6 @@ if SSL_AVAILABLE:
         )
         return markup
 
-    # Меню выбора города с кнопкой назад
     def city_menu():
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
@@ -71,7 +65,13 @@ if SSL_AVAILABLE:
         )
         return markup
 
-    # Обработчик команды /start — отправляет картинку + текст и меню, пауза 6 секунд
+    async def delete_message_safe(chat_id, message_id):
+        try:
+            await bot.delete_message(chat_id, message_id)
+        except:
+            pass
+
+    # Приветствие
     @dp.message_handler(commands=["start"])
     async def send_start(message: types.Message):
         user_id = message.from_user.id
@@ -80,78 +80,75 @@ if SSL_AVAILABLE:
             await bot.send_photo(
                 chat_id=user_id,
                 photo="https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672",
-                caption=(
-                    "Привет! Меня зовут Наталья Кумасинская. "
-                    "Я мама двоих сыновей и давно использую продукцию Авроры. "
-                    "Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
-                )
+                caption="Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
             )
-            await asyncio.sleep(6)  # пауза 6 секунд
+            await asyncio.sleep(6)
+        await delete_message_safe(user_id, message.message_id)
+        await bot.send_photo(
+            chat_id=user_id,
+            photo=MENU_IMAGE,
+            caption="Выбери, что тебе подходит 👇",
+            reply_markup=main_menu()
+        )
 
-        sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
-        try:
-            await message.delete()
-        except:
-            pass
-
-    # Обработчик команды /menu — с эффектом Таноса (удаляет сообщение пользователя и предыдущее бота)
+    # Меню с эффектом Таноса
     @dp.message_handler(commands=["menu"])
     async def send_menu(message: types.Message):
         user_id = message.from_user.id
+        await delete_message_safe(user_id, message.message_id)
+        await bot.send_photo(
+            chat_id=user_id,
+            photo=MENU_IMAGE,
+            caption="Выбери, что тебе подходит 👇",
+            reply_markup=main_menu()
+        )
 
-        # Эффект Таноса: удаляем сообщение пользователя и предыдущее бота, если возможно
-        try:
-            await message.delete()
-        except:
-            pass
-
-        sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
-
-    # Обработчик команды /registration
     @dp.message_handler(commands=["registration"])
     async def send_registration_link(message: types.Message):
-        try:
-            await message.delete()
-        except:
-            pass
+        user_id = message.from_user.id
+        await delete_message_safe(user_id, message.message_id)
         await message.answer("Ссылка для регистрации: https://aur-ora.com/auth/registration/666282189484")
 
-    # Обработчик команды /catalog
     @dp.message_handler(commands=["catalog"])
     async def send_catalog_link(message: types.Message):
-        try:
-            await message.delete()
-        except:
-            pass
+        user_id = message.from_user.id
+        await delete_message_safe(user_id, message.message_id)
         await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty")
 
-    # Обработчик нажатий на inline-кнопки
     @dp.callback_query_handler(lambda c: True)
     async def handle_callback(callback_query: types.CallbackQuery):
         data = callback_query.data
         user_id = callback_query.from_user.id
         message_id = callback_query.message.message_id
 
-        # Эффект Таноса — удаляем сообщение с кнопками
-        try:
-            await bot.delete_message(chat_id=user_id, message_id=message_id)
-        except:
-            pass
+        await delete_message_safe(user_id, message_id)
 
-        if data == "check_address":
-            await bot.send_message(user_id, "Введите свой город:")
-
-        elif data == "select_product":
-            await bot.send_message(user_id, "Выберите категорию продукта:", reply_markup=product_menu())
+        if data == "select_product":
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=MENU_IMAGE,
+                caption="Выберите категорию продукта:",
+                reply_markup=product_menu()
+            )
 
         elif data == "ask_question":
             await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат, и я обязательно на него отвечу.")
 
         elif data == "check_city":
-            await bot.send_message(user_id, "Выберите город:", reply_markup=city_menu())
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=MENU_IMAGE,
+                caption="Выберите город:",
+                reply_markup=city_menu()
+            )
 
         elif data == "back_to_main":
-            await bot.send_message(user_id, "Выбери, что тебе подходит 👇", reply_markup=main_menu())
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=MENU_IMAGE,
+                caption="Выбери, что тебе подходит 👇",
+                reply_markup=main_menu()
+            )
 
         elif data == "Minsk":
             await bot.send_message(user_id, "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 0000")
@@ -167,23 +164,25 @@ if SSL_AVAILABLE:
         elif data == "report_error":
             await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
-        # Обработка "Для волос" — картинка, подпись, кнопки "Подробнее" и "Назад"
         elif data == "hair":
-            photo_url = "https://aur-ora.com/upload/iblock/255/2550adbef26e3aa6bceb1882b092e7eb.png"
-            caption = "Антиоксидант с облепихой"
+            # Отправляем картинку с описанием и кнопкой подробнее + назад
             markup = InlineKeyboardMarkup(row_width=1)
             markup.add(
                 InlineKeyboardButton("Подробнее", url="https://aur-ora.com/catalog/zdorove/543/"),
                 InlineKeyboardButton("◀️ Назад", callback_data="select_product")
             )
-            await bot.send_photo(user_id, photo=photo_url, caption=caption, reply_markup=markup)
+            await bot.send_photo(
+                chat_id=user_id,
+                photo="https://aur-ora.com/upload/iblock/255/2550adbef26e3aa6bceb1882b092e7eb.png",
+                caption="Антиоксидант с облепихой",
+                reply_markup=markup
+            )
 
         elif data in ["joints", "liver", "vitamins"]:
             await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
 
         await bot.answer_callback_query(callback_query.id)
 
-    # Обработчик текстовых сообщений (не команд)
     @dp.message_handler(lambda message: message.text and not message.text.startswith("/"))
     async def forward_user_message(message: types.Message):
         await bot.send_message(
@@ -192,7 +191,6 @@ if SSL_AVAILABLE:
         )
         await message.reply("✅ Ваше сообщение отправлено. Ожидайте ответа.")
 
-    # Запускаем бота
     if __name__ == "__main__":
         executor.start_polling(dp, skip_updates=True)
 
