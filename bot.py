@@ -79,7 +79,7 @@ if SSL_AVAILABLE:
             user_started.add(user_id)
             await bot.send_photo(
                 chat_id=user_id,
-                photo="https://github.com/user-attachments/assets/17dd2122-c5ee-4599-86ac-c7748a3d90ea",
+                photo="https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672",
                 caption=(
                     "Привет! Меня зовут Наталья Кумасинская. "
                     "Я мама двоих сыновей и давно использую продукцию Авроры. "
