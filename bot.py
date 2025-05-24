@@ -1,5 +1,6 @@
 # Импортируем нужные модули из aiogram
 import os
+import asyncio
 from dotenv import load_dotenv  # Для загрузки переменных из .env
 
 # Проверка на поддержку SSL (важно для aiogram)
@@ -12,7 +13,7 @@ except ImportError:
 
 if SSL_AVAILABLE:
     from aiogram import Bot, Dispatcher, executor, types
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 
     # Загружаем переменные окружения из файла .env
     load_dotenv()
@@ -76,25 +77,27 @@ if SSL_AVAILABLE:
         user_id = message.from_user.id
         if user_id not in user_started:
             user_started.add(user_id)
-            await message.answer("Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы")
+            await bot.send_photo(
+                chat_id=user_id,
+                photo="https://github.com/user-attachments/assets/17dd2122-c5ee-4599-86ac-c7748a3d90ea",
+                caption="Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
+            )
+            await asyncio.sleep(6)
         sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
         try:
             await message.delete()
         except:
             pass
 
-    # Обработчик команды /menu — первая без эффекта Таноса
+    # Обработчик команды /menu — всегда с Таносом
     @dp.message_handler(commands=["menu"])
     async def send_menu(message: types.Message):
         user_id = message.from_user.id
         sent = await message.answer("Выбери, что тебе подходит 👇", reply_markup=main_menu())
-        if user_id in user_menu_called:
-            try:
-                await message.delete()
-            except:
-                pass
-        else:
-            user_menu_called.add(user_id)
+        try:
+            await message.delete()
+        except:
+            pass
 
     # Обработчик команды /registration
     @dp.message_handler(commands=["registration"])
