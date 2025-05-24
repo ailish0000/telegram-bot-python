@@ -173,7 +173,7 @@ if SSL_AVAILABLE:
             )
             await bot.send_photo(
                 chat_id=user_id,
-                photo="https://aur-ora.com/upload/iblock/255/2550adbef26e3aa6bceb1882b092e7eb.png",
+                photo="https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64",
                 caption="Антиоксидант с облепихой",
                 reply_markup=markup
             )
