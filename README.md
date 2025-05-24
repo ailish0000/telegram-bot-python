@@ -69,3 +69,6 @@ Open Telegram, start a chat with your bot, and try the commands `/start` or `
 ![приветственное сообщение](https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672) 
 
 ![Логотипа Аврора](https://github.com/user-attachments/assets/832593ee-2617-4ef6-9656-ff4d4f9506b8)
+![Солберри](https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64)
+
+
