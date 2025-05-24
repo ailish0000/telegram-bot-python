@@ -22,7 +22,7 @@ if SSL_AVAILABLE:
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(bot)
 
-    WELCOME_IMAGE = "https://github.com/user-attachments/assets/17dd2122-c5ee-4599-86ac-c7748a3d90ea"
+    WELCOME_IMAGE = "https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672"
     MENU_IMAGE = "https://github.com/user-attachments/assets/832593ee-2617-4ef6-9656-ff4d4f9506b8"
 
     user_started = set()
@@ -79,7 +79,7 @@ if SSL_AVAILABLE:
             user_started.add(user_id)
             await bot.send_photo(
                 chat_id=user_id,
-                photo="https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672",
+                photo=WELCOME_IMAGE,
                 caption="Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
             )
             await asyncio.sleep(6)
