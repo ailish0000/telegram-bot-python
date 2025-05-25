@@ -92,17 +92,22 @@ if SSL_AVAILABLE:
             pass
 
     async def thanos_effect(chat_id):
+        """
+        Удаляет все предыдущие сообщения в чате, создавая эффект Таноса.
+        """
         try:
-            async for msg in bot.iter_history(chat_id, limit=50):
-                if random.random() < 0.5:
-                    try:
-                        await bot.delete_message(chat_id, msg.message_id)
-                    except:
-                        continue
-        except:
+            # Получаем историю чата (до 100 сообщений)
+            async for msg in bot.iter_history(chat_id, limit=100):
+                try:
+                    # Удаляем каждое сообщение
+                    await bot.delete_message(chat_id, msg.message_id)
+                except:
+                    continue
+        except Exception as e:
+            # Игнорируем ошибки при удалении
             pass
 
-    @dp.message_handler(commands=["start", "menu"])
+    @dp.message_handler(commands=["start", "menu"])(commands=["start", "menu"])
     async def send_start(message: types.Message):
         user_id = message.from_user.id
         user_started.add(user_id)
@@ -132,7 +137,7 @@ if SSL_AVAILABLE:
             await bot.send_photo(chat_id=user_id, photo=MENU_IMAGE, caption="Выберите категорию продукта:", reply_markup=product_menu())
 
         elif data == "prostuda":
-            markup = InlineKeyboardMarkup()
+            markup = InlineKeyboardMarkup(row_width=1)
             markup.add(InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/"))
             markup.row(
                 InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
@@ -146,7 +151,7 @@ if SSL_AVAILABLE:
             )
 
         elif data == "prostuda_2":
-            markup = InlineKeyboardMarkup()
+            markup = InlineKeyboardMarkup(row_width=1)
             markup.add(InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/"))
             markup.row(
                 InlineKeyboardButton("◀️ Назад", callback_data="prostuda"),
@@ -160,7 +165,7 @@ if SSL_AVAILABLE:
             )
 
         elif data == "prostuda_3":
-            markup = InlineKeyboardMarkup()
+            markup = InlineKeyboardMarkup(row_width=1)
             markup.add(InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/"))
             markup.row(InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2"))
             await bot.send_photo(
