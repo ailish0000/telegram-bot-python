@@ -107,7 +107,7 @@ if SSL_AVAILABLE:
             # Игнорируем ошибки при удалении
             pass
 
-    @dp.message_handler(commands=["start", "menu"])(commands=["start", "menu"])
+    @dp.message_handler(commands=["start", "menu"])
     async def send_start(message: types.Message):
         user_id = message.from_user.id
         user_started.add(user_id)
