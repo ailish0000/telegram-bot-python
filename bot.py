@@ -1,4 +1,3 @@
-вот актуальный код из файла bot.py с этим кодом и будем работать далее
 # Импортируем нужные модули из aiogram
 import os
 import asyncio
@@ -27,16 +26,26 @@ if SSL_AVAILABLE:
     MENU_IMAGE = "https://github.com/user-attachments/assets/832593ee-2617-4ef6-9656-ff4d4f9506b8"
 
     user_started = set()
+    user_messages = []  # Для хранения сообщений пользователей
 
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
             InlineKeyboardButton("Регистрация 💚", url="https://aur-ora.com/auth/registration/666282189484"),
-            InlineKeyboardButton("1️⃣ Подборка продуктов", callback_data="select_product"),
-            InlineKeyboardButton("2️⃣ Задать вопрос", callback_data="ask_question"),
-            InlineKeyboardButton("3️⃣ Каталог всех продуктов", callback_data="catalog"),
-            InlineKeyboardButton("4️⃣ Адреса магазинов", callback_data="check_city"),
+            InlineKeyboardButton("Подборка продуктов", callback_data="select_product"),            
+            InlineKeyboardButton("Каталог всех продуктов", callback_data="catalog"),
+            InlineKeyboardButton("Адреса магазинов", callback_data="check_city"),
+            InlineKeyboardButton("Задать вопрос", callback_data="ask_question"),
             InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
+        )
+        return markup
+
+    def admin_menu():
+        markup = InlineKeyboardMarkup(row_width=1)
+        markup.add(
+            InlineKeyboardButton("📊 Статистика", callback_data="admin_stats"),
+            InlineKeyboardButton("💬 Обращения", callback_data="admin_messages"),
+            InlineKeyboardButton("📢 Сделать рассылку", callback_data="admin_broadcast")
         )
         return markup
 
@@ -79,28 +88,16 @@ if SSL_AVAILABLE:
         except:
             pass
 
-    @dp.message_handler(commands=["start"])
+    @dp.message_handler(commands=["start", "menu"])
     async def send_start(message: types.Message):
         user_id = message.from_user.id
-        if user_id not in user_started:
-            user_started.add(user_id)
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=WELCOME_IMAGE,
-                caption="Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
-            )
-            await asyncio.sleep(6)
-        await delete_message_safe(user_id, message.message_id)
+        user_started.add(user_id)  # Просто сохраняем ID пользователя
         await bot.send_photo(
             chat_id=user_id,
-            photo=MENU_IMAGE,
-            caption="Выбери, что тебе подходит 👇",
-            reply_markup=main_menu()
+            photo=WELCOME_IMAGE,
+            caption="Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
         )
-
-    @dp.message_handler(commands=["menu"])
-    async def send_menu(message: types.Message):
-        user_id = message.from_user.id
+        await asyncio.sleep(6)
         await delete_message_safe(user_id, message.message_id)
         await bot.send_photo(
             chat_id=user_id,
@@ -110,44 +107,70 @@ if SSL_AVAILABLE:
         )
 
     @dp.message_handler(commands=["registration"])
-    async def send_registration_link(message: types.Message):
-        user_id = message.from_user.id
-        await delete_message_safe(user_id, message.message_id)
-        await message.answer("Ссылка для регистрации: https://aur-ora.com/auth/registration/666282189484")
+    async def send_registration(message: types.Message):
+        await message.answer("Для регистрации перейдите по ссылке:", reply_markup=main_menu())
 
     @dp.message_handler(commands=["catalog"])
-    async def send_catalog_link(message: types.Message):
-        user_id = message.from_user.id
-        await delete_message_safe(user_id, message.message_id)
-        await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty")
+    async def send_catalog(message: types.Message):
+        await message.answer("Каталог продукции доступен на сайте: https://aur-ora.com/catalog/")
 
-    @dp.callback_query_handler(lambda c: True)
-    async def handle_callback(callback_query: types.CallbackQuery):
+    @dp.message_handler(commands=["admin"])
+    async def show_admin_panel(message: types.Message):
+        if message.from_user.id == ADMIN_ID:
+            await message.answer("Админ-панель:", reply_markup=admin_menu())
+        else:
+            await message.answer("⛔ Доступ запрещён.")
+
+    @dp.callback_query_handler(lambda c: c.data.startswith("admin_"))
+    async def handle_admin_actions(callback_query: types.CallbackQuery):
         data = callback_query.data
         user_id = callback_query.from_user.id
-        message_id = callback_query.message.message_id
+        if user_id != ADMIN_ID:
+            await callback_query.answer("⛔ Нет доступа", show_alert=True)
+            return
 
-        await delete_message_safe(user_id, message_id)
+        if data == "admin_stats":
+            await bot.send_message(user_id, f"👥 Пользователей: {len(user_started)}\n📨 Обращений: {len(user_messages)}")
+        elif data == "admin_messages":
+            if user_messages:
+                for msg in user_messages[-10:]:
+                    await bot.send_message(user_id, msg)
+            else:
+                await bot.send_message(user_id, "Нет обращений.")
+        elif data == "admin_broadcast":
+            await bot.send_message(user_id, "Введите текст для рассылки:")
+            dp.register_message_handler(broadcast_message, state=None)
+
+        await bot.answer_callback_query(callback_query.id)
+
+    async def broadcast_message(message: types.Message):
+        if message.from_user.id != ADMIN_ID:
+            return
+        count = 0
+        for uid in user_started:
+            try:
+                await bot.send_message(uid, f"📢 Сообщение от Натальи:\n\n{message.text}")
+                count += 1
+            except:
+                continue
+        await message.answer(f"✅ Рассылка отправлена {count} пользователям.")
+        dp.unregister_message_handler(broadcast_message, state=None)
+
+    @dp.callback_query_handler()
+    async def handle_callbacks(callback_query: types.CallbackQuery):
+        data = callback_query.data
+        user_id = callback_query.from_user.id
 
         if data == "select_product":
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=MENU_IMAGE,
-                caption="Выберите категорию продукта:",
-                reply_markup=product_menu()
-            )
-
+            await bot.send_message(user_id, "Выбери категорию продуктов:", reply_markup=product_menu())
         elif data == "ask_question":
-            await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат, и я обязательно на него отвечу.")
-
+            await bot.send_message(user_id, "Напишите ваш вопрос, и я постараюсь ответить! ")
+        elif data == "catalog":
+            await bot.send_message(user_id, "Каталог: https://aur-ora.com/catalog/")
         elif data == "check_city":
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=MENU_IMAGE,
-                caption="Выберите город:",
-                reply_markup=city_menu()
-            )
-
+            await bot.send_message(user_id, "Выберите ваш город:", reply_markup=city_menu())
+        elif data == "report_error":
+            await bot.send_message(user_id, "Опишите, пожалуйста, ошибку — я передам её администратору.")
         elif data == "back_to_main":
             await bot.send_photo(
                 chat_id=user_id,
@@ -155,81 +178,15 @@ if SSL_AVAILABLE:
                 caption="Выбери, что тебе подходит 👇",
                 reply_markup=main_menu()
             )
-
-        elif data == "report_error":
-            await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
-
-        elif data.startswith("prostuda"):
-            step = data.replace("prostuda", "").strip("_") or "1"
-
-            if step == "1":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_2")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64",
-                    caption="1️⃣ Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром",
-                    reply_markup=markup
-                )
-
-            elif step == "2":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_1"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_3")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1",
-                    caption="2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром",
-                    reply_markup=markup
-                )
-
-            elif step == "3":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/df53f6da-2cdd-4d75-b20e-0206c3252456",
-                    caption="3️⃣ Коллоидное серебро. Природный антибиотик.",
-                    reply_markup=markup
-                )
-
-        elif data in ["joints", "liver", "vitamins"]:
-            await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
-
-        elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
-            cities = {
-                "Minsk": "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 0000",
-                "Gomel": "📍 Гомель: ул. Советская, 45. Тел: +375 29 111 1111",
-                "Brest": "📍 Брест: ул. Ленина, 10. Тел: +375 29 222 2222",
-                "Vitebsk": "📍 Витебск: ул. Чкалова, 15. Тел: +375 29 333 3333",
-                "Mogilev": "📍 Могилев: пр-т Мира, 7. Тел: +375 29 444 4444"
-            }
-            await bot.send_message(user_id, cities[data])
+        else:
+            await bot.send_message(user_id, f"Вы нажали: {data}")
 
         await bot.answer_callback_query(callback_query.id)
 
     @dp.message_handler(lambda message: message.text and not message.text.startswith("/"))
     async def forward_user_message(message: types.Message):
-        await bot.send_message(
-            ADMIN_ID,
-            f"📩 Сообщение от @{message.from_user.username or 'без username'} (ID: {message.from_user.id}):\n\n{message.text}"
-        )
+        user_messages.append(f"📩 @{message.from_user.username or 'без username'} (ID: {message.from_user.id}):\n{message.text}")
+        await bot.send_message(ADMIN_ID, user_messages[-1])
         await message.reply("✅ Ваше сообщение отправлено. Ожидайте ответа.")
 
     if __name__ == "__main__":
