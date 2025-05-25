@@ -93,13 +93,12 @@ if SSL_AVAILABLE:
 
     async def thanos_effect(chat_id):
         try:
-            messages = await bot.get_chat_history(chat_id, limit=50)
-            to_delete = random.sample(messages, k=len(messages)//2)
-            for msg in to_delete:
-                try:
-                    await bot.delete_message(chat_id, msg.message_id)
-                except:
-                    continue
+            async for msg in bot.iter_history(chat_id, limit=50):
+                if random.random() < 0.5:
+                    try:
+                        await bot.delete_message(chat_id, msg.message_id)
+                    except:
+                        continue
         except:
             pass
 
@@ -127,40 +126,50 @@ if SSL_AVAILABLE:
         data = callback_query.data
         user_id = callback_query.from_user.id
 
+        await thanos_effect(user_id)
+
         if data == "select_product":
             await bot.send_photo(chat_id=user_id, photo=MENU_IMAGE, caption="Выберите категорию продукта:", reply_markup=product_menu())
+
         elif data == "prostuda":
+            markup = InlineKeyboardMarkup()
+            markup.add(InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/"))
+            markup.row(
+                InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+                InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_2")
+            )
             await bot.send_photo(
                 chat_id=user_id,
                 photo="https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64",
                 caption="1️⃣ Антиоксидант из сока облепихи.",
-                reply_markup=InlineKeyboardMarkup().add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/"),
-                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_2")
-                )
+                reply_markup=markup
             )
+
         elif data == "prostuda_2":
+            markup = InlineKeyboardMarkup()
+            markup.add(InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/"))
+            markup.row(
+                InlineKeyboardButton("◀️ Назад", callback_data="prostuda"),
+                InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_3")
+            )
             await bot.send_photo(
                 chat_id=user_id,
                 photo="https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1",
                 caption="2️⃣ Сок свеклы.",
-                reply_markup=InlineKeyboardMarkup().add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/"),
-                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_3")
-                )
+                reply_markup=markup
             )
+
         elif data == "prostuda_3":
+            markup = InlineKeyboardMarkup()
+            markup.add(InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/"))
+            markup.row(InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2"))
             await bot.send_photo(
                 chat_id=user_id,
                 photo="https://github.com/user-attachments/assets/df53f6da-2cdd-4d75-b20e-0206c3252456",
                 caption="3️⃣ Коллоидное серебро.",
-                reply_markup=InlineKeyboardMarkup().add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/"),
-                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2")
-                )
+                reply_markup=markup
             )
+
         await bot.answer_callback_query(callback_query.id)
 
     if __name__ == "__main__":
