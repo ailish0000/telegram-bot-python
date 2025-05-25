@@ -1,7 +1,8 @@
 # Импортируем нужные модули из aiogram
 import os
 import asyncio
-from dotenv import load_dotenv  # Для загрузки переменных из .env
+import random
+from dotenv import load_dotenv
 
 try:
     import ssl
@@ -22,20 +23,23 @@ if SSL_AVAILABLE:
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(bot)
 
+    # Изображения
     WELCOME_IMAGE = "https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672"
     MENU_IMAGE = "https://github.com/user-attachments/assets/832593ee-2617-4ef6-9656-ff4d4f9506b8"
 
+    # Данные
     user_started = set()
-    user_messages = []  # Для хранения сообщений пользователей
+    user_messages = []
 
+    # Меню
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
             InlineKeyboardButton("Регистрация 💚", url="https://aur-ora.com/auth/registration/666282189484"),
-            InlineKeyboardButton("Подборка продуктов", callback_data="select_product"),            
-            InlineKeyboardButton("Каталог всех продуктов", callback_data="catalog"),
-            InlineKeyboardButton("Адреса магазинов", callback_data="check_city"),
-            InlineKeyboardButton("Задать вопрос", callback_data="ask_question"),
+            InlineKeyboardButton("1⃣ Подборка продуктов", callback_data="select_product"),
+            InlineKeyboardButton("2⃣ Задать вопрос", callback_data="ask_question"),
+            InlineKeyboardButton("3⃣ Каталог всех продуктов", callback_data="catalog"),
+            InlineKeyboardButton("4⃣ Адреса магазинов", callback_data="check_city"),
             InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
         )
         return markup
@@ -53,33 +57,30 @@ if SSL_AVAILABLE:
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
             InlineKeyboardButton("От простуды", callback_data="prostuda"),
-            InlineKeyboardButton("Волосы/ногти", callback_data="hair"),                     
+            InlineKeyboardButton("Волосы/ногти", callback_data="hair"),
             InlineKeyboardButton("Для суставов", callback_data="joints"),
             InlineKeyboardButton("Для печени", callback_data="liver"),
             InlineKeyboardButton("Витамины", callback_data="vitamins"),
             InlineKeyboardButton("Антипаразитарка", callback_data="antiparazit"),
-            InlineKeyboardButton("Сорбенты", callback_data="sorbent"),               
-            InlineKeyboardButton("Личный топ", callback_data="top"),               
+            InlineKeyboardButton("Сорбенты", callback_data="sorbent"),
+            InlineKeyboardButton("Личный топ", callback_data="top"),
             InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
         )
         return markup
 
     def city_menu():
+        cities = [
+            ("Минск", "Minsk"), ("Минская область", "Minsk_region"),
+            ("Гомель", "Gomel"), ("Гомельская область", "Gomel_region"),
+            ("Брест", "Brest"), ("Брестская область", "Brest_region"),
+            ("Витебск", "Vitebsk"), ("Витебская область", "Vitebsk_region"),
+            ("Могилев", "Mogilev"), ("Могилевская область", "Mogilev_region"),
+            ("Нет моего города", "none_city")
+        ]
         markup = InlineKeyboardMarkup(row_width=1)
-        markup.add(           
-            InlineKeyboardButton("Минск", callback_data="Minsk"),
-            InlineKeyboardButton("Минская область", callback_data="Minsk_region"),            
-            InlineKeyboardButton("Гомель", callback_data="Gomel"),
-            InlineKeyboardButton("Гомельская область", callback_data="Gomel_region"),             
-            InlineKeyboardButton("Брест", callback_data="Brest"),
-            InlineKeyboardButton("Брестская область", callback_data="Brest_region"),             
-            InlineKeyboardButton("Витебск", callback_data="Vitebsk"),
-            InlineKeyboardButton("Витебская область", callback_data="Vitebsk_region"),             
-            InlineKeyboardButton("Могилев", callback_data="Mogilev"),
-            InlineKeyboardButton("Могилевская область", callback_data="Mogilev_region"),             
-            InlineKeyboardButton("Нет моего города", callback_data="none_city"),
-            InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
-        )
+        for name, data in cities:
+            markup.add(InlineKeyboardButton(name, callback_data=data))
+        markup.add(InlineKeyboardButton("◀️ Назад", callback_data="back_to_main"))
         return markup
 
     async def delete_message_safe(chat_id, message_id):
@@ -88,10 +89,22 @@ if SSL_AVAILABLE:
         except:
             pass
 
+    async def thanos_effect(chat_id):
+        try:
+            messages = await bot.get_chat_history(chat_id, limit=50)
+            to_delete = random.sample(messages, k=len(messages)//2)
+            for msg in to_delete:
+                try:
+                    await bot.delete_message(chat_id, msg.message_id)
+                except:
+                    continue
+        except:
+            pass
+
     @dp.message_handler(commands=["start", "menu"])
     async def send_start(message: types.Message):
         user_id = message.from_user.id
-        user_started.add(user_id)  # Просто сохраняем ID пользователя
+        user_started.add(user_id)
         await bot.send_photo(
             chat_id=user_id,
             photo=WELCOME_IMAGE,
@@ -99,6 +112,7 @@ if SSL_AVAILABLE:
         )
         await asyncio.sleep(6)
         await delete_message_safe(user_id, message.message_id)
+        await thanos_effect(user_id)
         await bot.send_photo(
             chat_id=user_id,
             photo=MENU_IMAGE,
@@ -158,30 +172,8 @@ if SSL_AVAILABLE:
 
     @dp.callback_query_handler()
     async def handle_callbacks(callback_query: types.CallbackQuery):
-        data = callback_query.data
-        user_id = callback_query.from_user.id
-
-        if data == "select_product":
-            await bot.send_message(user_id, "Выбери категорию продуктов:", reply_markup=product_menu())
-        elif data == "ask_question":
-            await bot.send_message(user_id, "Напишите ваш вопрос, и я постараюсь ответить! ")
-        elif data == "catalog":
-            await bot.send_message(user_id, "Каталог: https://aur-ora.com/catalog/")
-        elif data == "check_city":
-            await bot.send_message(user_id, "Выберите ваш город:", reply_markup=city_menu())
-        elif data == "report_error":
-            await bot.send_message(user_id, "Опишите, пожалуйста, ошибку — я передам её администратору.")
-        elif data == "back_to_main":
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=MENU_IMAGE,
-                caption="Выбери, что тебе подходит 👇",
-                reply_markup=main_menu()
-            )
-        else:
-            await bot.send_message(user_id, f"Вы нажали: {data}")
-
-        await bot.answer_callback_query(callback_query.id)
+        from handlers.products import handle_product_carousels
+        await handle_product_carousels(callback_query, bot, MENU_IMAGE, main_menu, product_menu)
 
     @dp.message_handler(lambda message: message.text and not message.text.startswith("/"))
     async def forward_user_message(message: types.Message):
@@ -191,6 +183,5 @@ if SSL_AVAILABLE:
 
     if __name__ == "__main__":
         executor.start_polling(dp, skip_updates=True)
-
 else:
     print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS.")
