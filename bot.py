@@ -30,6 +30,8 @@ if SSL_AVAILABLE:
     # Данные
     user_started = set()
     user_messages = []
+    waiting_for_question = set()
+    waiting_for_error = set()
 
     # Меню
     def main_menu():
@@ -172,14 +174,44 @@ if SSL_AVAILABLE:
 
     @dp.callback_query_handler()
     async def handle_callbacks(callback_query: types.CallbackQuery):
+        data = callback_query.data
+        user_id = callback_query.from_user.id
+
+        if data == "select_product":
+            await bot.send_photo(chat_id=user_id, photo=MENU_IMAGE, caption="Выберите категорию продукта:", reply_markup=product_menu())
+        elif data == "ask_question":
+            waiting_for_question.add(user_id)
+            await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат, и я обязательно на него отвечу.")
+        elif data == "report_error":
+            waiting_for_error.add(user_id)
+            await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
+        elif data == "catalog":
+            await bot.send_message(user_id, "Каталог продукции доступен на сайте: https://aur-ora.com/catalog/")
+        elif data == "check_city":
+            await bot.send_photo(chat_id=user_id, photo=MENU_IMAGE, caption="Выберите город:", reply_markup=city_menu())
+        elif data == "back_to_main":
+            await bot.send_photo(chat_id=user_id, photo=MENU_IMAGE, caption="Выбери, что тебе подходит 👇", reply_markup=main_menu())
+
         from handlers.products import handle_product_carousels
         await handle_product_carousels(callback_query, bot, MENU_IMAGE, main_menu, product_menu)
 
+        await bot.answer_callback_query(callback_query.id)
+
     @dp.message_handler(lambda message: message.text and not message.text.startswith("/"))
     async def forward_user_message(message: types.Message):
-        user_messages.append(f"📩 @{message.from_user.username or 'без username'} (ID: {message.from_user.id}):\n{message.text}")
+        user_id = message.from_user.id
+        if user_id in waiting_for_question:
+            user_messages.append(f"❓ Вопрос от @{message.from_user.username or 'без username'} (ID: {user_id}):\n{message.text}")
+            waiting_for_question.remove(user_id)
+            await message.reply("✅ Ваш вопрос отправлен. Я постараюсь ответить как можно скорее.")
+        elif user_id in waiting_for_error:
+            user_messages.append(f"🐞 Ошибка от @{message.from_user.username or 'без username'} (ID: {user_id}):\n{message.text}")
+            waiting_for_error.remove(user_id)
+            await message.reply("✅ Спасибо! Я постараюсь исправить ошибку в ближайшее время.")
+        else:
+            user_messages.append(f"📩 Сообщение от @{message.from_user.username or 'без username'} (ID: {user_id}):\n{message.text}")
+            await message.reply("✅ Ваше сообщение отправлено. Ожидайте ответа.")
         await bot.send_message(ADMIN_ID, user_messages[-1])
-        await message.reply("✅ Ваше сообщение отправлено. Ожидайте ответа.")
 
     if __name__ == "__main__":
         executor.start_polling(dp, skip_updates=True)
