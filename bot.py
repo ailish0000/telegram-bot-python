@@ -107,7 +107,36 @@ if SSL_AVAILABLE:
             # Игнорируем ошибки при удалении
             pass
 
-    @dp.message_handler(commands=["start", "menu"])
+    @dp.message_handler(commands=["start"])
+    async def send_start(message: types.Message):
+        user_id = message.from_user.id
+        user_started.add(user_id)
+        await bot.send_photo(
+            chat_id=user_id,
+            photo=WELCOME_IMAGE,
+            caption="Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
+        )
+        await asyncio.sleep(6)
+        await delete_message_safe(user_id, message.message_id)
+        await thanos_effect(user_id)
+        await bot.send_photo(
+            chat_id=user_id,
+            photo=MENU_IMAGE,
+            caption="Выбери, что тебе подходит 👇",
+            reply_markup=main_menu()
+        )
+
+    @dp.message_handler(commands=["menu"])
+    async def send_menu(message: types.Message):
+        user_id = message.from_user.id
+        await delete_message_safe(user_id, message.message_id)
+        await thanos_effect(user_id)
+        await bot.send_photo(
+            chat_id=user_id,
+            photo=MENU_IMAGE,
+            caption="Выбери, что тебе подходит 👇",
+            reply_markup=main_menu()
+        )
     async def send_start(message: types.Message):
         user_id = message.from_user.id
         user_started.add(user_id)
@@ -181,3 +210,4 @@ if SSL_AVAILABLE:
         executor.start_polling(dp, skip_updates=True)
 else:
     print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS.")
+
