@@ -243,7 +243,7 @@ if SSL_AVAILABLE:
 # конец кнопки от простуды
 # начало кнопки волосы
 
-        elif data.startswith("hair"):
+    elif data.startswith("hair"):
             step = data.replace("hair", "").strip("_") or "1"
 
             if step == "1":
