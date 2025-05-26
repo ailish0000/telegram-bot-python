@@ -215,12 +215,28 @@ if SSL_AVAILABLE:
                     InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/vse_produkty/24839")
                 )
                 markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_3")
+                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_3"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_5")
                 )
                 await bot.send_photo(
                     chat_id=user_id,
                     photo="https://github.com/user-attachments/assets/89b794f8-7c3f-4d45-bc65-d980ba18fbeb",
-                    caption="4 Натуральное противовирусное ср-во. Содержит L-аргинин,L-лизин, Кошачий коготь и другие полезные вещества.",
+                    caption="4️⃣ Натуральное противовирусное ср-во. Содержит L-аргинин, L-лизин, Кошачий коготь и др.",
+                    reply_markup=markup
+                )
+
+            elif step == "5":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/vse_produkty/7347/")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_4")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://github.com/user-attachments/assets/6be0aed7-982b-4867-a039-4c7005743769",
+                    caption="5️⃣ Пищевой продукт для активизации иммунной системы на основе Чаги.",
                     reply_markup=markup
                 )
 
