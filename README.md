@@ -76,4 +76,7 @@ Open Telegram, start a chat with your bot, and try the commands `/start` or `
 
 ![Серебро]https://github.com/user-attachments/assets/df53f6da-2cdd-4d75-b20e-0206c3252456)
 
+![БАРС2](https://github.com/user-attachments/assets/89b794f8-7c3f-4d45-bc65-d980ba18fbeb)
+
+
 
