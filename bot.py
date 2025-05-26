@@ -158,7 +158,7 @@ if SSL_AVAILABLE:
         elif data == "report_error":
             await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
-//начало для кнопки от простуды
+# начало для кнопки от простуды
         elif data.startswith("prostuda"):
             step = data.replace("prostuda", "").strip("_") or "1"
 
@@ -240,8 +240,8 @@ if SSL_AVAILABLE:
                     caption="5️⃣ Пищевой продукт для активизации иммунной системы на основе Чаги.",
                     reply_markup=markup
                 )
-// конец кнопки от простуды
-// начало кнопки волосы
+# конец кнопки от простуды
+# начало кнопки волосы
 
         elif data.startswith("hair"):
             step = data.replace("hair", "").strip("_") or "1"
@@ -277,7 +277,7 @@ if SSL_AVAILABLE:
                     caption="2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром",
                     reply_markup=markup
                 )
-                // конец кнопки волосы
+                # конец кнопки волосы
         elif data in ["joints", "liver", "vitamins"]:
             await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
 
