@@ -31,10 +31,10 @@ if SSL_AVAILABLE:
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
             InlineKeyboardButton("Регистрация 💚", url="https://aur-ora.com/auth/registration/666282189484"),
-            InlineKeyboardButton("1️⃣ Подборка продуктов", callback_data="select_product"),
-            InlineKeyboardButton("2️⃣ Задать вопрос", callback_data="ask_question"),
-            InlineKeyboardButton("3️⃣ Каталог всех продуктов", callback_data="catalog"),
-            InlineKeyboardButton("4️⃣ Адреса магазинов", callback_data="check_city"),
+            InlineKeyboardButton("Подборка продуктов", callback_data="select_product"),            
+            InlineKeyboardButton("Каталог всех продуктов", callback_data="catalog"),
+            InlineKeyboardButton("Адреса магазинов", callback_data="check_city"),
+            InlineKeyboardButton("Задать вопрос", callback_data="ask_question"),
             InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
         )
         return markup
@@ -49,7 +49,7 @@ if SSL_AVAILABLE:
             InlineKeyboardButton("Витамины", callback_data="vitamins"),
             InlineKeyboardButton("Антипаразитарка", callback_data="antiparazit"),
             InlineKeyboardButton("Сорбенты", callback_data="sorbent"),               
-            InlineKeyboardButton("Личный топ", callback_data="top"),               
+            InlineKeyboardButton("Мои фавориты", callback_data="top"),               
             InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
         )
         return markup
@@ -137,7 +137,7 @@ if SSL_AVAILABLE:
             )
 
         elif data == "ask_question":
-            await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат, и я обязательно на него отвечу.")
+            await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат и я обязательно на него отвечу.")
 
         elif data == "check_city":
             await bot.send_photo(
@@ -199,12 +199,28 @@ if SSL_AVAILABLE:
                     InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/")
                 )
                 markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2")
+                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_4")
                 )
                 await bot.send_photo(
                     chat_id=user_id,
                     photo="https://github.com/user-attachments/assets/df53f6da-2cdd-4d75-b20e-0206c3252456",
                     caption="3️⃣ Коллоидное серебро. Природный антибиотик.",
+                    reply_markup=markup
+                )
+
+            elif step == "4":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/vse_produkty/24839")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_3")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://github.com/user-attachments/assets/89b794f8-7c3f-4d45-bc65-d980ba18fbeb",
+                    caption="4 Натуральное противовирусное ср-во. Содержит L-аргинин,L-лизин, Кошачий коготь и другие полезные вещества.",
                     reply_markup=markup
                 )
 
