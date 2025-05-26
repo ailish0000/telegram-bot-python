@@ -204,7 +204,7 @@ if SSL_AVAILABLE:
                 )
                 await bot.send_photo(
                     chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/df53f6da-2cdd-4d75-b20e-0206c3252456",
+                    photo="https://github.com/user-attachments/assets/0d0ee28f-3110-4b2e-9f82-d20989091e0f",
                     caption="3️⃣ Коллоидное серебро. Природный антибиотик.",
                     reply_markup=markup
                 )
