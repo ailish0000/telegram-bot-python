@@ -239,10 +239,8 @@ if SSL_AVAILABLE:
                     photo="https://github.com/user-attachments/assets/6be0aed7-982b-4867-a039-4c7005743769",
                     caption="5️⃣ Пищевой продукт для активизации иммунной системы на основе Чаги.",
                     reply_markup=markup
-                )
-# конец кнопки от простуды
+                )# конец кнопки от простуды
 # начало кнопки волосы
-
         elif data.startswith("hair"):
             step = data.replace("hair", "").strip("_") or "1"
 
@@ -277,6 +275,21 @@ if SSL_AVAILABLE:
                     caption="2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром",
                     reply_markup=markup
                 )
+            elif step == "3":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="hair_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://github.com/user-attachments/assets/0d0ee28f-3110-4b2e-9f82-d20989091e0f",
+                    caption="3️⃣ Коллоидное серебро. Природный антибиотик.",
+                    reply_markup=markup
+                )
+    
                 # конец кнопки волосы
             elif data in ["joints", "liver", "vitamins"]:
                 
