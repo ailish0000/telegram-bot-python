@@ -243,7 +243,7 @@ if SSL_AVAILABLE:
 # конец кнопки от простуды
 # начало кнопки волосы
 
-    elif data.startswith("hair"):
+        elif data.startswith("hair"):
             step = data.replace("hair", "").strip("_") or "1"
 
             if step == "1":
@@ -278,8 +278,9 @@ if SSL_AVAILABLE:
                     reply_markup=markup
                 )
                 # конец кнопки волосы
-        elif data in ["joints", "liver", "vitamins"]:
-            await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
+            elif data in ["joints", "liver", "vitamins"]:
+                
+                await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
 
         elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
             cities = {
