@@ -13,12 +13,14 @@ except ImportError:
 if SSL_AVAILABLE:
     from aiogram import Bot, Dispatcher, executor, types
     from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+    from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
     load_dotenv()
 
     BOT_TOKEN = os.getenv("BOT_TOKEN")
     ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
+    storage = MemoryStorage()
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(bot)
 
@@ -216,3 +218,5 @@ if SSL_AVAILABLE:
 
 else:
     print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS.")
+import admin
+    
