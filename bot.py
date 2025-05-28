@@ -5,11 +5,11 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils import executor
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
-API_TOKEN = 'YOUR_BOT_TOKEN_HERE'
+API_TOKEN = '7418671884:AAFvcf5SNmAgW46W-D_C2YiZVEUJCVetKOw'
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 dp.middleware.setup(LoggingMiddleware())
 
