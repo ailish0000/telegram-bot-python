@@ -1,6 +1,8 @@
+# Импортируем нужные модули из aiogram
 import os
 import asyncio
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # Для загрузки переменных из .env
+from aiogram.contrib.fsm_storage.memory import MemoryStorage  # Для хранения состояний (если понадобится)
 
 try:
     import ssl
@@ -11,30 +13,33 @@ except ImportError:
 
 if SSL_AVAILABLE:
     from aiogram import Bot, Dispatcher, executor, types
-    from aiogram.contrib.fsm_storage.memory import MemoryStorage  # <<< ДОБАВЛЕНО
     from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-    import admin  # <<< ДОБАВЛЕНО
 
     load_dotenv()
 
     BOT_TOKEN = os.getenv("BOT_TOKEN")
     ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
-    storage = MemoryStorage()  # <<< ДОБАВЛЕНО
+    storage = MemoryStorage()
     bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher(bot, storage=storage)  # <<< изменено: добавлен storage
+    dp = Dispatcher(bot, storage=storage)
 
     WELCOME_IMAGE = "https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672"
     MENU_IMAGE = "https://github.com/user-attachments/assets/832593ee-2617-4ef6-9656-ff4d4f9506b8"
 
     user_started = set()
+
+    # Чтобы помнить, кто нажал "ask_question" или "report_error"
     user_modes = {}
+
+    # Сессии ответа администратора: admin_id -> user_id
+    admin_reply_sessions = {}
 
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
             InlineKeyboardButton("Регистрация 💚", url="https://aur-ora.com/auth/registration/666282189484"),
-            InlineKeyboardButton("Подборка продуктов", callback_data="select_product"),            
+            InlineKeyboardButton("Подборка продуктов", callback_data="select_product"),
             InlineKeyboardButton("Каталог всех продуктов", callback_data="catalog"),
             InlineKeyboardButton("Адреса магазинов", callback_data="check_city"),
             InlineKeyboardButton("Задать вопрос", callback_data="ask_question"),
@@ -46,31 +51,31 @@ if SSL_AVAILABLE:
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
             InlineKeyboardButton("От простуды", callback_data="prostuda"),
-            InlineKeyboardButton("Волосы/ногти", callback_data="hair"),                     
+            InlineKeyboardButton("Волосы/ногти", callback_data="hair"),
             InlineKeyboardButton("Для суставов", callback_data="joints"),
             InlineKeyboardButton("Для печени", callback_data="liver"),
             InlineKeyboardButton("Витамины", callback_data="vitamins"),
             InlineKeyboardButton("Антипаразитарка", callback_data="antiparazit"),
-            InlineKeyboardButton("Сорбенты", callback_data="sorbent"),               
-            InlineKeyboardButton("Мои фавориты", callback_data="top"),               
-            InlineKeyboardButton("Детокс", callback_data="detox"),               
+            InlineKeyboardButton("Сорбенты", callback_data="sorbent"),
+            InlineKeyboardButton("Мои фавориты", callback_data="top"),
+            InlineKeyboardButton("Детокс", callback_data="detox"),
             InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
         )
         return markup
 
     def city_menu():
         markup = InlineKeyboardMarkup(row_width=1)
-        markup.add(           
+        markup.add(
             InlineKeyboardButton("Минск", callback_data="Minsk"),
-            InlineKeyboardButton("Минская область", callback_data="Minsk_region"),            
+            InlineKeyboardButton("Минская область", callback_data="Minsk_region"),
             InlineKeyboardButton("Гомель", callback_data="Gomel"),
-            InlineKeyboardButton("Гомельская область", callback_data="Gomel_region"),             
+            InlineKeyboardButton("Гомельская область", callback_data="Gomel_region"),
             InlineKeyboardButton("Брест", callback_data="Brest"),
-            InlineKeyboardButton("Брестская область", callback_data="Brest_region"),             
+            InlineKeyboardButton("Брестская область", callback_data="Brest_region"),
             InlineKeyboardButton("Витебск", callback_data="Vitebsk"),
-            InlineKeyboardButton("Витебская область", callback_data="Vitebsk_region"),             
+            InlineKeyboardButton("Витебская область", callback_data="Vitebsk_region"),
             InlineKeyboardButton("Могилев", callback_data="Mogilev"),
-            InlineKeyboardButton("Могилевская область", callback_data="Mogilev_region"),             
+            InlineKeyboardButton("Могилевская область", callback_data="Mogilev_region"),
             InlineKeyboardButton("Нет моего города", callback_data="none_city"),
             InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
         )
@@ -144,6 +149,10 @@ if SSL_AVAILABLE:
             user_modes[user_id] = "ask_question"
             await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат и я обязательно на него отвечу.")
 
+        elif data == "report_error":
+            user_modes[user_id] = "report_error"
+            await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
+
         elif data == "check_city":
             await bot.send_photo(
                 chat_id=user_id,
@@ -159,10 +168,6 @@ if SSL_AVAILABLE:
                 caption="Выбери, что тебе подходит 👇",
                 reply_markup=main_menu()
             )
-
-        elif data == "report_error":
-            user_modes[user_id] = "report_error"
-            await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
         elif any(data.startswith(prefix) for prefix in ["prostuda", "hair", "joints", "liver", "vitamins", "antiparazit", "sorbent", "top", "detox"]):
             step = data.split("_")[1] if "_" in data else "1"
@@ -198,33 +203,83 @@ if SSL_AVAILABLE:
 
         elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
             cities = {
-                "Minsk": "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 0000",
-                "Gomel": "📍 Гомель: ул. Советская, 45. Тел: +375 29 111 1111",
-                "Brest": "📍 Брест: ул. Ленина, 10. Тел: +375 29 222 2222",
-                "Vitebsk": "📍 Витебск: ул. Чкалова, 15. Тел: +375 29 333 3333",
-                "Mogilev": "📍 Могилев: пр-т Мира, 7. Тел: +375 29 444 4444"
+                "Minsk": "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 00 00",
+                "Gomel": "📍 Гомель: ул. Советская, 45. Тел: +375 29 111 11 11",
+                "Brest": "📍 Брест: ул. Ленина, 67. Тел: +375 29 222 22 22",
+                "Vitebsk": "📍 Витебск: пр-т Победы, 89. Тел: +375 29 333 33 33",
+                "Mogilev": "📍 Могилев: ул. Первомайская, 100. Тел: +375 29 444 44 44"
             }
             await bot.send_message(user_id, cities[data])
 
-        await bot.answer_callback_query(callback_query.id)
+        elif data == "none_city":
+            await bot.send_message(user_id, "Свяжитесь с нами для уточнения адреса.")
 
-    @dp.message_handler(lambda message: message.text and not message.text.startswith("/"))
+        else:
+            await bot.send_message(user_id, "Команда не распознана.")
+
+    # Пересылка сообщений от пользователей админу с кнопкой "Ответить" — только если пользователь выбрал ask_question или report_error
+    @dp.message_handler(lambda message: message.from_user.id != ADMIN_ID and message.text)
     async def forward_user_message(message: types.Message):
         user_id = message.from_user.id
         mode = user_modes.get(user_id)
         if mode in ["ask_question", "report_error"]:
+            reply_markup = InlineKeyboardMarkup().add(
+                InlineKeyboardButton("Ответить", callback_data=f"reply_to_{user_id}")
+            )
+            username_display = message.from_user.username or f"ID:{user_id}"
             await bot.send_message(
                 ADMIN_ID,
-                f"📩 Сообщение от @{message.from_user.username or 'без username'} (ID: {user_id}), режим: {mode}:\n\n{message.text}"
+                f"📩 Сообщение от @{username_display}, режим: {mode}:\n\n{message.text}",
+                reply_markup=reply_markup
             )
             await message.reply("✅ Ваше сообщение отправлено. Ожидайте ответа.")
             user_modes[user_id] = None
         else:
             await message.reply("Пожалуйста, сначала выберите одну из опций: задать вопрос или сообщить об ошибке.")
 
+    # Обработка нажатия кнопки "Ответить" у админа
+    @dp.callback_query_handler(lambda c: c.data and c.data.startswith("reply_to_"))
+    async def start_reply(callback_query: types.CallbackQuery):
+        admin_id = callback_query.from_user.id
+        if admin_id != ADMIN_ID:
+            await callback_query.answer("У вас нет доступа.", show_alert=True)
+            return
+
+        user_id = int(callback_query.data.split("_")[-1])
+        admin_reply_sessions[admin_id] = user_id
+        await callback_query.answer("Режим ответа активирован. Теперь отправляйте сообщения, чтобы отвечать пользователю.")
+        await bot.send_message(admin_id, f"Вы вошли в режим ответа пользователю с ID {user_id}. Чтобы выйти — отправьте /cancel.")
+
+    # Обработка сообщений от админа в режиме ответа
+    @dp.message_handler(lambda message: message.from_user.id == ADMIN_ID)
+    async def handle_admin_message(message: types.Message):
+        admin_id = message.from_user.id
+        if admin_id in admin_reply_sessions:
+            user_id = admin_reply_sessions[admin_id]
+            if message.text == "/cancel":
+                admin_reply_sessions.pop(admin_id)
+                await message.reply("Вы вышли из режима ответа.")
+                return
+            try:
+                await bot.send_message(user_id, f"📩 Ответ от администратора:\n\n{message.text}")
+                await message.reply("✅ Сообщение отправлено пользователю.")
+            except Exception as e:
+                await message.reply(f"❌ Ошибка при отправке сообщения пользователю: {e}")
+        else:
+            await message.reply("Вы не в режиме ответа. Чтобы начать, нажмите кнопку 'Ответить' в сообщении пользователя.")
+
+    # Команда для выхода из режима ответа
+    @dp.message_handler(commands=["cancel"])
+    async def cancel_reply_mode(message: types.Message):
+        admin_id = message.from_user.id
+        if admin_id in admin_reply_sessions:
+            admin_reply_sessions.pop(admin_id)
+            await message.reply("Вы вышли из режима ответа.")
+        else:
+            await message.reply("Вы не были в режиме ответа.")
+
     if __name__ == "__main__":
         executor.start_polling(dp, skip_updates=True)
 
 else:
-    print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS.")
-
+    print("Бот не запущен, т.к. нет SSL.")
