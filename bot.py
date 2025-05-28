@@ -1,7 +1,6 @@
-# Импортируем нужные модули из aiogram
 import os
 import asyncio
-from dotenv import load_dotenv  # Для загрузки переменных из .env
+from dotenv import load_dotenv
 
 try:
     import ssl
@@ -12,22 +11,24 @@ except ImportError:
 
 if SSL_AVAILABLE:
     from aiogram import Bot, Dispatcher, executor, types
+    from aiogram.contrib.fsm_storage.memory import MemoryStorage  # <<< ДОБАВЛЕНО
     from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-    from aiogram.contrib.fsm_storage.memory import MemoryStorage
+    import admin  # <<< ДОБАВЛЕНО
 
     load_dotenv()
 
     BOT_TOKEN = os.getenv("BOT_TOKEN")
     ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
-    storage = MemoryStorage()
+    storage = MemoryStorage()  # <<< ДОБАВЛЕНО
     bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher(bot)
+    dp = Dispatcher(bot, storage=storage)  # <<< изменено: добавлен storage
 
     WELCOME_IMAGE = "https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672"
     MENU_IMAGE = "https://github.com/user-attachments/assets/832593ee-2617-4ef6-9656-ff4d4f9506b8"
 
     user_started = set()
+    user_modes = {}
 
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
@@ -140,6 +141,7 @@ if SSL_AVAILABLE:
             )
 
         elif data == "ask_question":
+            user_modes[user_id] = "ask_question"
             await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат и я обязательно на него отвечу.")
 
         elif data == "check_city":
@@ -159,6 +161,7 @@ if SSL_AVAILABLE:
             )
 
         elif data == "report_error":
+            user_modes[user_id] = "report_error"
             await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
         elif any(data.startswith(prefix) for prefix in ["prostuda", "hair", "joints", "liver", "vitamins", "antiparazit", "sorbent", "top", "detox"]):
@@ -207,16 +210,21 @@ if SSL_AVAILABLE:
 
     @dp.message_handler(lambda message: message.text and not message.text.startswith("/"))
     async def forward_user_message(message: types.Message):
-        await bot.send_message(
-            ADMIN_ID,
-            f"📩 Сообщение от @{message.from_user.username or 'без username'} (ID: {message.from_user.id}):\n\n{message.text}"
-        )
-        await message.reply("✅ Ваше сообщение отправлено. Ожидайте ответа.")
+        user_id = message.from_user.id
+        mode = user_modes.get(user_id)
+        if mode in ["ask_question", "report_error"]:
+            await bot.send_message(
+                ADMIN_ID,
+                f"📩 Сообщение от @{message.from_user.username or 'без username'} (ID: {user_id}), режим: {mode}:\n\n{message.text}"
+            )
+            await message.reply("✅ Ваше сообщение отправлено. Ожидайте ответа.")
+            user_modes[user_id] = None
+        else:
+            await message.reply("Пожалуйста, сначала выберите одну из опций: задать вопрос или сообщить об ошибке.")
 
     if __name__ == "__main__":
         executor.start_polling(dp, skip_updates=True)
 
 else:
     print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS.")
-import admin
-    
+
