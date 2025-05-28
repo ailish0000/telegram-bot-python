@@ -9,7 +9,7 @@ API_TOKEN = 'YOUR_BOT_TOKEN_HERE'
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token=API_TOKEN)
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 dp.middleware.setup(LoggingMiddleware())
 
