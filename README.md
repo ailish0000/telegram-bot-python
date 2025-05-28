@@ -1,70 +1,77 @@
-## Telegram Python Bot
+# Telegram-бот Наталья Кумасинская
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/a0ln90?referralCode=CODE)
+## Описание
 
-## Overview
+Telegram-бот помогает выбрать продукцию компании Аврора, предоставляет полезную информацию о товарах, а также позволяет пользователям задавать вопросы и сообщать об ошибках.
 
-This project is a simple Telegram bot built using the telebot library. It demonstrates the basic structure of a Telegram bot and uses Poetry for dependency management. The bot responds to commands and messages, and can be easily extended with additional functionality.
+---
 
-## Key Features
+## Функционал для пользователей
 
-- Minimal Telegram bot application
-- Responds to '/start' and '/hello' commands
-- Echoes all other messages
-- Uses telebot for bot functionality
-- Uses Poetry for dependency management
-- Easy to understand and extend
+- Приветственное сообщение при первом запуске `/start`.
+- Главное меню с кнопками:
+  - Регистрация на сайте Аврора.
+  - Подборка продуктов по категориям.
+  - Каталог всех продуктов.
+  - Адреса магазинов.
+  - Задать вопрос (для связи с администратором).
+  - Сообщить об ошибке (для отправки ошибок админу).
 
-## Setup
+- Категории продуктов с каруселью товаров:
+  - От простуды
+  - Волосы/ногти
+  - Для суставов
+  - Для печени
+  - Витамины
+  - Антипаразитарка
+  - Сорбенты
+  - Мои фавориты
+  - Детокс
 
-```bash
-pip install poetry
-poetry install
-```
+- Карусель включает фото, описание, кнопку "Читать подробнее", навигацию "назад", "далее" и кнопку "К выбору категории".
 
-## Develop
+- Выбор города для просмотра адресов магазинов.
 
-To run the bot locally:
+---
 
-```bash
-poetry run python -B main.py
-```
+## Взаимодействие с администратором
 
-Make sure to set up your `.env` file with your Telegram bot token:
+- Пользователь нажимает кнопку "Задать вопрос" или "Сообщить об ошибке" и пишет сообщение.
+- Сообщения от таких пользователей пересылаются администратору.
+- Администратор может отвечать пользователям через специальный интерфейс в боте.
 
-```bash
-TELEGRAM_BOT_TOKEN=your_token_here
-```
+---
 
-## Deploy
+## Админка — возможности
 
-Initialize your project:
+### Команды для администратора
 
-```bash
-railway init
-```
+- `/stats` — статистика: количество пользователей, которые запустили бота.
+- `/broadcast` — начать рассылку сообщения всем пользователям.
+  - После команды админ вводит текст сообщения.
+  - Бот рассылает сообщение всем пользователям.
 
-To deploy the bot on Railway:
+### Ответы пользователям
 
-```bash
-railway up
-```
+- Админ получает сообщения от пользователей с кнопкой "Ответить".
+- По нажатию на кнопку админ пишет ответ.
+- Бот отправляет ответ пользователю от имени администратора.
 
-Remember to set the `TELEGRAM_BOT_TOKEN` environment variable in your Railway project settings.TELEGRAM_BOT_TOKEN
+### Безопасность
 
-## Test
+- Админские команды доступны только пользователю с ID, указанным в переменной окружения `ADMIN_ID`.
+- Пересылка сообщений пользователям и от пользователей администратору происходит только если пользователь нажал кнопку "Задать вопрос" или "Сообщить об ошибке".
 
-Open Telegram, start a chat with your bot, and try the commands `/start` or `/hello`. The bot will also echo any other messages you send.
+---
 
-## Learn More
+## Развертывание
 
-- [Telebot Documentation](https://pypi.org/project/pyTelegramBotAPI/)
-- [Poetry Documentation](https://python-poetry.org/docs/)
-- [Telegram Bot API](https://core.telegram.org/bots/api)
-- [Railway Documentation](https://docs.railway.app/)
-- [Telegram Python Bot Repository](https://github.com/aeither/telegram-bot-python/)
-- [Railway Marketplace](https://railway.app/template/a0ln90)
+1. Клонируйте репозиторий и установите зависимости:
 
+   ```bash
+   pip install -r requirements.txt
+
+###IMAGE
   
 ![приветственное сообщение](https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672) 
 
