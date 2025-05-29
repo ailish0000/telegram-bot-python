@@ -1,9 +1,8 @@
+# Импортируем нужные модули из aiogram
 import os
 import asyncio
-from dotenv import load_dotenv
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from dotenv import load_dotenv  # Для загрузки переменных из .env
+from aiogram.contrib.fsm_storage.memory import MemoryStorage  # Для хранения состояний (если понадобится)
 
 try:
     import ssl
@@ -13,6 +12,9 @@ except ImportError:
     print("⚠️ Библиотека SSL недоступна. Бот не сможет установить HTTPS-соединения.")
 
 if SSL_AVAILABLE:
+    from aiogram import Bot, Dispatcher, executor, types
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
     load_dotenv()
 
     BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -26,9 +28,9 @@ if SSL_AVAILABLE:
     MENU_IMAGE = "https://github.com/user-attachments/assets/832593ee-2617-4ef6-9656-ff4d4f9506b8"
 
     user_started = set()
+
+    # Чтобы помнить, кто нажал "ask_question" или "report_error"
     user_modes = {}
-    admin_reply_sessions = {}
-    broadcast_sessions = {}
 
     def main_menu():
         markup = InlineKeyboardMarkup(row_width=1)
@@ -90,7 +92,7 @@ if SSL_AVAILABLE:
             await bot.send_photo(
                 chat_id=user_id,
                 photo=WELCOME_IMAGE,
-                caption="Привет! Меня зовут Наталья Кумасинская..."
+                caption="Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
             )
             await asyncio.sleep(6)
         await delete_message_safe(user_id, message.message_id)
@@ -103,58 +105,129 @@ if SSL_AVAILABLE:
 
     @dp.message_handler(commands=["menu"])
     async def send_menu(message: types.Message):
-        await delete_message_safe(message.chat.id, message.message_id)
-        await bot.send_photo(message.chat.id, MENU_IMAGE, caption="Выбери, что тебе подходит 👇", reply_markup=main_menu())
+        user_id = message.from_user.id
+        await delete_message_safe(user_id, message.message_id)
+        await bot.send_photo(
+            chat_id=user_id,
+            photo=MENU_IMAGE,
+            caption="Выбери, что тебе подходит 👇",
+            reply_markup=main_menu()
+        )
 
     @dp.message_handler(commands=["registration"])
     async def send_registration_link(message: types.Message):
-        await delete_message_safe(message.chat.id, message.message_id)
+        user_id = message.from_user.id
+        await delete_message_safe(user_id, message.message_id)
         await message.answer("Ссылка для регистрации: https://aur-ora.com/auth/registration/666282189484")
 
     @dp.message_handler(commands=["catalog"])
     async def send_catalog_link(message: types.Message):
-        await delete_message_safe(message.chat.id, message.message_id)
+        user_id = message.from_user.id
+        await delete_message_safe(user_id, message.message_id)
         await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty")
 
-    # --- Admin Panel ---
-    @dp.message_handler(commands=["stats"])
-    async def stats(message: types.Message):
-        if message.from_user.id != ADMIN_ID:
-            return await message.reply("⛔️ Доступ запрещён.")
-        await message.reply(f"📊 Количество пользователей: {len(user_started)}")
+    @dp.callback_query_handler(lambda c: True)
+    async def handle_callback(callback_query: types.CallbackQuery):
+        data = callback_query.data
+        user_id = callback_query.from_user.id
+        message_id = callback_query.message.message_id
 
-    @dp.message_handler(commands=["broadcast"])
-    async def start_broadcast(message: types.Message):
-        if message.from_user.id != ADMIN_ID:
-            return await message.reply("⛔️ Доступ запрещён.")
-        broadcast_sessions[ADMIN_ID] = True
-        await message.reply("✉️ Введите текст сообщения для рассылки или /cancel для отмены.")
+        await delete_message_safe(user_id, message_id)
 
-    @dp.message_handler(lambda m: m.from_user.id == ADMIN_ID and m.text == "/cancel")
-    async def cancel_broadcast(message: types.Message):
-        if broadcast_sessions.pop(ADMIN_ID, None):
-            await message.reply("✅ Рассылка отменена.")
+        if data == "select_product":
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=MENU_IMAGE,
+                caption="Выберите категорию продукта:",
+                reply_markup=product_menu()
+            )
+
+        elif data == "ask_question":
+            user_modes[user_id] = "ask_question"
+            await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат и я обязательно на него отвечу.")
+
+        elif data == "report_error":
+            user_modes[user_id] = "report_error"
+            await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
+
+        elif data == "check_city":
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=MENU_IMAGE,
+                caption="Выберите город:",
+                reply_markup=city_menu()
+            )
+
+        elif data == "back_to_main":
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=MENU_IMAGE,
+                caption="Выбери, что тебе подходит 👇",
+                reply_markup=main_menu()
+            )
+
+        elif any(data.startswith(prefix) for prefix in ["prostuda", "hair", "joints", "liver", "vitamins", "antiparazit", "sorbent", "top", "detox"]):
+            step = data.split("_")[1] if "_" in data else "1"
+            prefix = data.split("_")[0] if "_" in data else data
+
+            messages = [
+                ("https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64", "1️⃣ Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром", "https://aur-ora.com/catalog/zdorove/543/"),
+                ("https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1", "2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром", "https://aur-ora.com/catalog/zdorove/641/"),
+                ("https://github.com/user-attachments/assets/0d0ee28f-3110-4b2e-9f82-d20989091e0f", "3️⃣ Коллоидное серебро. Природный антибиотик.", "https://aur-ora.com/catalog/zdorove/447/"),
+                ("https://github.com/user-attachments/assets/89b794f8-7c3f-4d45-bc65-d980ba18fbeb", "4️⃣ Натуральное противовирусное ср-во. Содержит L-аргинин, L-лизин, Кошачий коготь и др.", "https://aur-ora.com/catalog/vse_produkty/24839"),
+                ("https://github.com/user-attachments/assets/6be0aed7-982b-4867-a039-4c7005743769", "5️⃣ Пищевой продукт для активизации иммунной системы на основе Чаги.", "https://aur-ora.com/catalog/vse_produkty/7347/")
+            ]
+
+            index = int(step) - 1
+            markup = InlineKeyboardMarkup(row_width=2)
+            markup.add(InlineKeyboardButton("Читать подробнее", url=messages[index][2]))
+
+            nav_buttons = []
+            if index > 0:
+                nav_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data=f"{prefix}_{index}"))
+            if index < len(messages) - 1:
+                nav_buttons.append(InlineKeyboardButton("Дальше ▶️", callback_data=f"{prefix}_{index + 2}"))
+            if nav_buttons:
+                markup.add(*nav_buttons)
+            markup.add(InlineKeyboardButton("↩️ К выбору категории", callback_data="select_product"))
+
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=messages[index][0],
+                caption=messages[index][1],
+                reply_markup=markup
+            )
+
+        elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
+            cities = {
+                "Minsk": "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 00 00",
+                "Gomel": "📍 Гомель: ул. Советская, 45. Тел: +375 29 111 11 11",
+                "Brest": "📍 Брест: ул. Ленина, 67. Тел: +375 29 222 22 22",
+                "Vitebsk": "📍 Витебск: пр-т Победы, 89. Тел: +375 29 333 33 33",
+                "Mogilev": "📍 Могилев: ул. Первомайская, 100. Тел: +375 29 444 44 44"
+            }
+            await bot.send_message(user_id, cities[data])
+
+        elif data == "none_city":
+            await bot.send_message(user_id, "Свяжитесь с нами для уточнения адреса.")
+
         else:
-            await message.reply("Нет активной рассылки.")
+            await bot.send_message(user_id, "Команда не распознана.")
 
-    @dp.message_handler(lambda m: m.from_user.id == ADMIN_ID and ADMIN_ID in broadcast_sessions)
-    async def process_broadcast(message: types.Message):
-        text = message.text
-        broadcast_sessions.pop(ADMIN_ID, None)
-        success = 0
-        fail = 0
-        for uid in user_started:
-            try:
-                await bot.send_message(uid, text)
-                success += 1
-            except:
-                fail += 1
-        await message.reply(f"✅ Отправлено: {success}\n❌ Не доставлено: {fail}")
+    # Пересылка сообщений от пользователей админу с кнопкой "Ответить" — только если пользователь выбрал ask_question или report_error
+    @dp.message_handler(lambda message: message.from_user.id != ADMIN_ID and message.text)
+    async def forward_user_message(message: types.Message):
+        user_id = message.from_user.id
+        mode = user_modes.get(user_id)
+        if mode in ["ask_question", "report_error"]:
+            reply_markup = InlineKeyboardMarkup().add(
+                InlineKeyboardButton("Ответить", callback_data=f"reply_to_{user_id}")
+            )
+            username_display = message.from_user.username or f"ID:{user_id}"
+            await bot.send_message(
+                ADMIN_ID,
+                f"📩 Сообщение от @{username_display}, режим: {mode}:\n\n{message.text}",
+                reply_markup=reply_markup
+            )
+            await message.reply("✅ Ваше сообщение отправ
 
-    # --- Остальная логика обработки кнопок и сообщений будет добавлена здесь ---
-
-    if __name__ == "__main__":
-        executor.start_polling(dp, skip_updates=True)
-
-else:
-    print("Бот не запущен, т.к. нет SSL.")
