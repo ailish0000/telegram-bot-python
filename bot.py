@@ -1,233 +1,138 @@
-# Импортируем нужные модули из aiogram
+import logging
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils import executor
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import State, StatesGroup
+from collections import defaultdict
 import os
-import asyncio
-from dotenv import load_dotenv  # Для загрузки переменных из .env
-from aiogram.contrib.fsm_storage.memory import MemoryStorage  # Для хранения состояний (если понадобится)
 
-try:
-    import ssl
-    SSL_AVAILABLE = True
-except ImportError:
-    SSL_AVAILABLE = False
-    print("⚠️ Библиотека SSL недоступна. Бот не сможет установить HTTPS-соединения.")
+logging.basicConfig(level=logging.INFO)
 
-if SSL_AVAILABLE:
-    from aiogram import Bot, Dispatcher, executor, types
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_ID = int(os.getenv("ADMIN_ID", "123456789"))
 
-    load_dotenv()
+bot = Bot(token=TOKEN)
+dp = Dispatcher(bot)
 
-    BOT_TOKEN = os.getenv("BOT_TOKEN")
-    ADMIN_ID = int(os.getenv("ADMIN_ID"))
+stats = {
+    "users": set(),
+    "messages": defaultdict(int),
+    "errors": 0
+}
 
-    storage = MemoryStorage()
-    bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher(bot, storage=storage)
+class UserMessageStates(StatesGroup):
+    waiting_for_user_input = State()
 
-    WELCOME_IMAGE = "https://github.com/user-attachments/assets/474d0575-01ed-45cc-8253-5e35bccda672"
-    MENU_IMAGE = "https://github.com/user-attachments/assets/832593ee-2617-4ef6-9656-ff4d4f9506b8"
+main_menu = InlineKeyboardMarkup(row_width=2)
+main_menu.add(
+    InlineKeyboardButton("\ud83c\udfe3 \u041a\u0430\u0442\u0430\u043b\u043e\u0433 \u043f\u0440\u043e\u0434\u0443\u043a\u0446\u0438\u0438", callback_data="select_product"),
+    InlineKeyboardButton("\u2753 \u0417\u0430\u0434\u0430\u0442\u044c \u0432\u043e\u043f\u0440\u043e\u0441", callback_data="ask_question"),
+    InlineKeyboardButton("\u26a0\ufe0f \u0421\u043e\u043e\u0431\u0449\u0438\u0442\u044c \u043e\u0431 \u043e\u0448\u0438\u0431\u043a\u0435", callback_data="report_issue")
+)
 
-    user_started = set()
+product_menu = InlineKeyboardMarkup(row_width=2)
+product_menu.add(
+    InlineKeyboardButton("\ud83e\udc8a \u041e\u0442 \u043f\u0440\u043e\u0441\u0442\u0443\u0434\u044b", callback_data="prostuda"),
+    InlineKeyboardButton("\ud83d\udc87 \u0412\u043e\u043b\u043e\u0441\u044b / \u041d\u043e\u0433\u0442\u0438", callback_data="hair"),
+    InlineKeyboardButton("\ud83e\uddb4 \u0421\u0443\u0441\u0442\u0430\u0432\u044b", callback_data="joints"),
+    InlineKeyboardButton("\ud83e\udda0 \u041f\u0435\u0447\u0435\u043d\u044c", callback_data="liver"),
+    InlineKeyboardButton("\ud83d\udc8a \u0412\u0438\u0442\u0430\u043c\u0438\u043d\u044b", callback_data="vitamins"),
+    InlineKeyboardButton("\ud83e\uddec \u0410\u043d\u0442\u0438\u043f\u0430\u0440\u0430\u0437\u0438\u0442\u0430\u0440\u043a\u0430", callback_data="antiparazit"),
+    InlineKeyboardButton("\ud83e\uddf9 \u0421\u043e\u0440\u0431\u0435\u043d\u0442\u044b", callback_data="sorbent"),
+    InlineKeyboardButton("\ud83d\udd25 \u0425\u0438\u0442\u044b \u043f\u0440\u043e\u0434\u0430\u0436", callback_data="top"),
+    InlineKeyboardButton("\ud83c\udf3f \u0414\u0435\u0442\u043e\u043a\u0441", callback_data="detox"),
+    InlineKeyboardButton("\u21a9\ufe0f \u041d\u0430\u0437\u0430\u0434", callback_data="main_menu")
+)
 
-    # Чтобы помнить, кто нажал "ask_question" или "report_error"
-    user_modes = {}
+@dp.message_handler(commands=["start"])
+async def start_handler(message: types.Message):
+    user_id = message.from_user.id
+    stats["users"].add(user_id)
+    await message.answer("Добро пожаловать! Выберите действие:", reply_markup=main_menu)
 
-    def main_menu():
-        markup = InlineKeyboardMarkup(row_width=1)
-        markup.add(
-            InlineKeyboardButton("Регистрация 💚", url="https://aur-ora.com/auth/registration/666282189484"),
-            InlineKeyboardButton("Подборка продуктов", callback_data="select_product"),
-            InlineKeyboardButton("Каталог всех продуктов", callback_data="catalog"),
-            InlineKeyboardButton("Адреса магазинов", callback_data="check_city"),
-            InlineKeyboardButton("Задать вопрос", callback_data="ask_question"),
-            InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
-        )
-        return markup
+@dp.callback_query_handler(lambda c: c.data in ["ask_question", "report_issue"])
+async def handle_user_issue(callback_query: types.CallbackQuery, state: FSMContext):
+    user_id = callback_query.from_user.id
+    issue_type = "вопрос" if callback_query.data == "ask_question" else "ошибку"
+    await state.update_data(issue_type=issue_type, sender_id=user_id)
+    await UserMessageStates.waiting_for_user_input.set()
+    await bot.send_message(user_id, f"✍️ Пожалуйста, введите ваш {issue_type}, и администратор получит его.")
+    await bot.answer_callback_query(callback_query.id)
 
-    def product_menu():
-        markup = InlineKeyboardMarkup(row_width=2)
-        markup.add(
-            InlineKeyboardButton("От простуды", callback_data="prostuda"),
-            InlineKeyboardButton("Волосы/ногти", callback_data="hair"),
-            InlineKeyboardButton("Для суставов", callback_data="joints"),
-            InlineKeyboardButton("Для печени", callback_data="liver"),
-            InlineKeyboardButton("Витамины", callback_data="vitamins"),
-            InlineKeyboardButton("Антипаразитарка", callback_data="antiparazit"),
-            InlineKeyboardButton("Сорбенты", callback_data="sorbent"),
-            InlineKeyboardButton("Мои фавориты", callback_data="top"),
-            InlineKeyboardButton("Детокс", callback_data="detox"),
-            InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
-        )
-        return markup
+@dp.message_handler(state=UserMessageStates.waiting_for_user_input)
+async def forward_user_issue(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    user_id = data.get("sender_id")
+    issue_type = data.get("issue_type")
 
-    def city_menu():
-        markup = InlineKeyboardMarkup(row_width=1)
-        markup.add(
-            InlineKeyboardButton("Минск", callback_data="Minsk"),
-            InlineKeyboardButton("Минская область", callback_data="Minsk_region"),
-            InlineKeyboardButton("Гомель", callback_data="Gomel"),
-            InlineKeyboardButton("Гомельская область", callback_data="Gomel_region"),
-            InlineKeyboardButton("Брест", callback_data="Brest"),
-            InlineKeyboardButton("Брестская область", callback_data="Brest_region"),
-            InlineKeyboardButton("Витебск", callback_data="Vitebsk"),
-            InlineKeyboardButton("Витебская область", callback_data="Vitebsk_region"),
-            InlineKeyboardButton("Могилев", callback_data="Mogilev"),
-            InlineKeyboardButton("Могилевская область", callback_data="Mogilev_region"),
-            InlineKeyboardButton("Нет моего города", callback_data="none_city"),
-            InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
-        )
-        return markup
-
-    async def delete_message_safe(chat_id, message_id):
-        try:
-            await bot.delete_message(chat_id, message_id)
-        except:
-            pass
-
-    @dp.message_handler(commands=["start"])
-    async def send_start(message: types.Message):
-        user_id = message.from_user.id
-        if user_id not in user_started:
-            user_started.add(user_id)
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=WELCOME_IMAGE,
-                caption="Привет! Меня зовут Наталья Кумасинская. Я мама двоих сыновей и давно использую продукцию Авроры. Хочу поделиться опытом и помочь выбрать хорошие продукты этой фирмы"
+    if user_id and issue_type:
+        await bot.send_message(
+            ADMIN_ID,
+            f"📩 Новое обращение:\n\n"
+            f"Тип: {issue_type}\n"
+            f"ID пользователя: {user_id}\n"
+            f"Сообщение:\n{message.text}",
+            reply_markup=InlineKeyboardMarkup().add(
+                InlineKeyboardButton("✉️ Ответить", callback_data=f"reply_{user_id}")
             )
-            await asyncio.sleep(6)
-        await delete_message_safe(user_id, message.message_id)
-        await bot.send_photo(
-            chat_id=user_id,
-            photo=MENU_IMAGE,
-            caption="Выбери, что тебе подходит 👇",
-            reply_markup=main_menu()
         )
+        await message.reply("✅ Спасибо! Ваше сообщение передано администратору.")
+    else:
+        await message.reply("❌ Произошла ошибка. Попробуйте снова.")
+    await state.finish()
 
-    @dp.message_handler(commands=["menu"])
-    async def send_menu(message: types.Message):
-        user_id = message.from_user.id
-        await delete_message_safe(user_id, message.message_id)
-        await bot.send_photo(
-            chat_id=user_id,
-            photo=MENU_IMAGE,
-            caption="Выбери, что тебе подходит 👇",
-            reply_markup=main_menu()
-        )
+@dp.callback_query_handler(lambda c: True)
+async def callback_handler(callback_query: types.CallbackQuery):
+    user_id = callback_query.from_user.id
+    data = callback_query.data
+    stats["messages"][user_id] += 1
 
-    @dp.message_handler(commands=["registration"])
-    async def send_registration_link(message: types.Message):
-        user_id = message.from_user.id
-        await delete_message_safe(user_id, message.message_id)
-        await message.answer("Ссылка для регистрации: https://aur-ora.com/auth/registration/666282189484")
+    try:
+        if data == "main_menu":
+            await bot.send_message(chat_id=user_id, text="Главное меню:", reply_markup=main_menu)
 
-    @dp.message_handler(commands=["catalog"])
-    async def send_catalog_link(message: types.Message):
-        user_id = message.from_user.id
-        await delete_message_safe(user_id, message.message_id)
-        await message.answer("Ссылка на каталог: https://aur-ora.com/catalog/vse_produkty")
+        elif data == "select_product":
+            await bot.send_message(chat_id=user_id, text="Выберите категорию:", reply_markup=product_menu)
 
-    @dp.callback_query_handler(lambda c: True)
-    async def handle_callback(callback_query: types.CallbackQuery):
-        data = callback_query.data
-        user_id = callback_query.from_user.id
-        message_id = callback_query.message.message_id
-
-        await delete_message_safe(user_id, message_id)
-
-        if data == "select_product":
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=MENU_IMAGE,
-                caption="Выберите категорию продукта:",
-                reply_markup=product_menu()
-            )
-
-        elif data == "ask_question":
-            user_modes[user_id] = "ask_question"
-            await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат и я обязательно на него отвечу.")
-
-        elif data == "report_error":
-            user_modes[user_id] = "report_error"
-            await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
-
-        elif data == "check_city":
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=MENU_IMAGE,
-                caption="Выберите город:",
-                reply_markup=city_menu()
-            )
-
-        elif data == "back_to_main":
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=MENU_IMAGE,
-                caption="Выбери, что тебе подходит 👇",
-                reply_markup=main_menu()
-            )
-
-        elif any(data.startswith(prefix) for prefix in ["prostuda", "hair", "joints", "liver", "vitamins", "antiparazit", "sorbent", "top", "detox"]):
-            step = data.split("_")[1] if "_" in data else "1"
-            prefix = data.split("_")[0] if "_" in data else data
+        elif data.split("_")[0] in ["prostuda", "hair", "joints", "liver", "vitamins", "antiparazit", "sorbent", "top", "detox"]:
+            parts = data.split("_")
+            prefix = parts[0]
+            step = int(parts[1]) if len(parts) > 1 else 1
 
             messages = [
-                ("https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64", "1️⃣ Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром", "https://aur-ora.com/catalog/zdorove/543/"),
-                ("https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1", "2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром", "https://aur-ora.com/catalog/zdorove/641/"),
-                ("https://github.com/user-attachments/assets/0d0ee28f-3110-4b2e-9f82-d20989091e0f", "3️⃣ Коллоидное серебро. Природный антибиотик.", "https://aur-ora.com/catalog/zdorove/447/"),
-                ("https://github.com/user-attachments/assets/89b794f8-7c3f-4d45-bc65-d980ba18fbeb", "4️⃣ Натуральное противовирусное ср-во. Содержит L-аргинин, L-лизин, Кошачий коготь и др.", "https://aur-ora.com/catalog/vse_produkty/24839"),
-                ("https://github.com/user-attachments/assets/6be0aed7-982b-4867-a039-4c7005743769", "5️⃣ Пищевой продукт для активизации иммунной системы на основе Чаги.", "https://aur-ora.com/catalog/vse_produkty/7347/")
+                ("https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64", "1️⃣ ...", "https://aur-ora.com/catalog/zdorove/543/"),
+                ("https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1", "2️⃣ ...", "https://aur-ora.com/catalog/zdorove/641/"),
+                ("https://github.com/user-attachments/assets/0d0ee28f-3110-4b2e-9f82-d20989091e0f", "3️⃣ ...", "https://aur-ora.com/catalog/zdorove/447/"),
+                ("https://github.com/user-attachments/assets/89b794f8-7c3f-4d45-bc65-d980ba18fbeb", "4️⃣ ...", "https://aur-ora.com/catalog/vse_produkty/24839"),
+                ("https://github.com/user-attachments/assets/6be0aed7-982b-4867-a039-4c7005743769", "5️⃣ ...", "https://aur-ora.com/catalog/vse_produkty/7347/")
             ]
 
-            index = int(step) - 1
-            markup = InlineKeyboardMarkup(row_width=2)
-            markup.add(InlineKeyboardButton("Читать подробнее", url=messages[index][2]))
+            index = step - 1
+            if 0 <= index < len(messages):
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(InlineKeyboardButton("Читать подробнее", url=messages[index][2]))
 
-            nav_buttons = []
-            if index > 0:
-                nav_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data=f"{prefix}_{index}"))
-            if index < len(messages) - 1:
-                nav_buttons.append(InlineKeyboardButton("Дальше ▶️", callback_data=f"{prefix}_{index + 2}"))
-            if nav_buttons:
-                markup.add(*nav_buttons)
-            markup.add(InlineKeyboardButton("↩️ К выбору категории", callback_data="select_product"))
+                nav_buttons = []
+                if index > 0:
+                    nav_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data=f"{prefix}_{index}"))
+                if index < len(messages) - 1:
+                    nav_buttons.append(InlineKeyboardButton("Дальше ▶️", callback_data=f"{prefix}_{index + 2}"))
+                if nav_buttons:
+                    markup.add(*nav_buttons)
+                markup.add(InlineKeyboardButton("↩️ К выбору категории", callback_data="select_product"))
 
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=messages[index][0],
-                caption=messages[index][1],
-                reply_markup=markup
-            )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo=messages[index][0],
+                    caption=messages[index][1],
+                    reply_markup=markup
+                )
 
-        elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
-            cities = {
-                "Minsk": "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 00 00",
-                "Gomel": "📍 Гомель: ул. Советская, 45. Тел: +375 29 111 11 11",
-                "Brest": "📍 Брест: ул. Ленина, 67. Тел: +375 29 222 22 22",
-                "Vitebsk": "📍 Витебск: пр-т Победы, 89. Тел: +375 29 333 33 33",
-                "Mogilev": "📍 Могилев: ул. Первомайская, 100. Тел: +375 29 444 44 44"
-            }
-            await bot.send_message(user_id, cities[data])
+    except Exception as e:
+        stats["errors"] += 1
+        logging.exception("Ошибка в callback_handler")
 
-        elif data == "none_city":
-            await bot.send_message(user_id, "Свяжитесь с нами для уточнения адреса.")
-
-        else:
-            await bot.send_message(user_id, "Команда не распознана.")
-
-    # Пересылка сообщений от пользователей админу с кнопкой "Ответить" — только если пользователь выбрал ask_question или report_error
-    @dp.message_handler(lambda message: message.from_user.id != ADMIN_ID and message.text)
-    async def forward_user_message(message: types.Message):
-        user_id = message.from_user.id
-        mode = user_modes.get(user_id)
-        if mode in ["ask_question", "report_error"]:
-            reply_markup = InlineKeyboardMarkup().add(
-                InlineKeyboardButton("Ответить", callback_data=f"reply_to_{user_id}")
-            )
-            username_display = message.from_user.username or f"ID:{user_id}"
-            await bot.send_message(
-                ADMIN_ID,
-                f"📩 Сообщение от @{username_display}, режим: {mode}:\n\n{message.text}",
-                reply_markup=reply_markup
-            )
-            await message.reply("✅ Ваше сообщение отправ
-
+if __name__ == "__main__":
+    import admin
+    executor.start_polling(dp, skip_updates=True)
