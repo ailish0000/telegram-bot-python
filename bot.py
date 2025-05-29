@@ -1,8 +1,9 @@
-# Импортируем нужные модули из aiogram
 import os
 import asyncio
-from dotenv import load_dotenv  # Для загрузки переменных из .env
-from aiogram.contrib.fsm_storage.memory import MemoryStorage  # Для хранения состояний (если понадобится)
+from dotenv import load_dotenv
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 try:
     import ssl
@@ -12,9 +13,6 @@ except ImportError:
     print("⚠️ Библиотека SSL недоступна. Бот не сможет установить HTTPS-соединения.")
 
 if SSL_AVAILABLE:
-    from aiogram import Bot, Dispatcher, executor, types
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
     load_dotenv()
 
     BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -153,8 +151,7 @@ if SSL_AVAILABLE:
                 fail += 1
         await message.reply(f"✅ Отправлено: {success}\n❌ Не доставлено: {fail}")
 
-    # -- остальная логика остаётся без изменений --
-    # [сюда вставляется остальная часть кода, которую ты присылал выше — без изменений]
+    # --- Остальная логика обработки кнопок и сообщений будет добавлена здесь ---
 
     if __name__ == "__main__":
         executor.start_polling(dp, skip_updates=True)
