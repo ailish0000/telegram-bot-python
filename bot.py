@@ -158,134 +158,139 @@ if SSL_AVAILABLE:
         elif data == "report_error":
             await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
-        elif data.startswith("prostuda"):
-            step = data.replace("prostuda", "").strip("_") or "1"
+elif data.startswith("prostuda"):
+    user_id = callback_query.from_user.id  # Добавлено определение user_id
+    step = data.replace("prostuda", "").strip("_") or "1"
 
-            if step == "1":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_2")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64",
-                    caption="1️⃣ Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром",
-                    reply_markup=markup
-                )
+    if step == "1":
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/")
+        )
+        markup.add(
+            InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+            InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_2")
+        )
+        await bot.send_photo(
+            chat_id=user_id,
+            photo="https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64",
+            caption="1️⃣ Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром",
+            reply_markup=markup
+        )
 
-            elif step == "2":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_1"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_3")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1",
-                    caption="2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром",
-                    reply_markup=markup
-                )
+    elif step == "2":
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/")
+        )
+        markup.add(
+            InlineKeyboardButton("◀️ Назад", callback_data="prostuda_1"),
+            InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_3")
+        )
+        await bot.send_photo(
+            chat_id=user_id,
+            photo="https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1",
+            caption="2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром",
+            reply_markup=markup
+        )
 
-            elif step == "3":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/df53f6da-2cdd-4d75-b20e-0206c3252456",
-                    caption="3️⃣ Коллоидное серебро. Природный антибиотик.",
-                    reply_markup=markup
-                )
-            elif step == "4":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/vse_produkty/24839")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_3"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_5")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/89b794f8-7c3f-4d45-bc65-d980ba18fbeb",
-                    caption="4️⃣ Натуральное противовирусное ср-во. Содержит L-аргинин, L-лизин, Кошачий коготь и др.",
-                    reply_markup=markup
-                )
+    elif step == "3":
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/")
+        )
+        markup.add(
+            InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2")
+        )
+        await bot.send_photo(
+            chat_id=user_id,
+            photo="https://github.com/user-attachments/assets/df53f6da-2cdd-4d75-b20e-0206c3252456",
+            caption="3️⃣ Коллоидное серебро. Природный антибиотик.",
+            reply_markup=markup
+        )
 
-            elif step == "5":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/vse_produkty/7347/")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_4")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/6be0aed7-982b-4867-a039-4c7005743769",
-                    caption="5️⃣ Пищевой продукт для активизации иммунной системы на основе Чаги.",
-                    reply_markup=markup
-                )# конец кнопки от простуды
-                # начало кнопки волосы
-        elif data.startswith("hair"):
-            step = data.replace("hair", "").strip("_") or "1"
+    elif step == "4":
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/vse_produkty/24839")
+        )
+        markup.add(
+            InlineKeyboardButton("◀️ Назад", callback_data="prostuda_3"),
+            InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_5")
+        )
+        await bot.send_photo(
+            chat_id=user_id,
+            photo="https://github.com/user-attachments/assets/89b794f8-7c3f-4d45-bc65-d980ba18fbeb",
+            caption="4️⃣ Натуральное противовирусное ср-во. Содержит L-аргинин, L-лизин, Кошачий коготь и др.",
+            reply_markup=markup
+        )
 
-            if step == "1":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/71638/")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="hair_2")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/421f6099-0a50-42a5-a96b-059ad8af3776",
-                    caption="1️⃣ Коллаген, без добавок",
-                    reply_markup=markup
-                )
-                
-            elif step == "2":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="hair_1"),
-                    InlineKeyboardButton("Дальше ▶️", callback_data="hair_3")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1",
-                    caption="2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром",
-                    reply_markup=markup
-                )
-            elif step == "3":
-                markup = InlineKeyboardMarkup(row_width=2)
-                markup.add(
-                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/")
-                )
-                markup.add(
-                    InlineKeyboardButton("◀️ Назад", callback_data="hair_2")
-                )
-                await bot.send_photo(
-                    chat_id=user_id,
-                    photo="https://github.com/user-attachments/assets/0d0ee28f-3110-4b2e-9f82-d20989091e0f",
-                    caption="3️⃣ Коллоидное серебро. Природный антибиотик.",
-                    reply_markup=markup
-                )
+    elif step == "5":
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/vse_produkty/7347/")
+        )
+        markup.add(
+            InlineKeyboardButton("◀️ Назад", callback_data="prostuda_4")
+        )
+        await bot.send_photo(
+            chat_id=user_id,
+            photo="https://github.com/user-attachments/assets/6be0aed7-982b-4867-a039-4c7005743769",
+            caption="5️⃣ Пищевой продукт для активизации иммунной системы на основе Чаги.",
+            reply_markup=markup
+        )
+
+elif data.startswith("hair"):
+    user_id = callback_query.from_user.id  # Также добавлено здесь
+    step = data.replace("hair", "").strip("_") or "1"
+
+    if step == "1":
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/71638/")
+        )
+        markup.add(
+            InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+            InlineKeyboardButton("Дальше ▶️", callback_data="hair_2")
+        )
+        await bot.send_photo(
+            chat_id=user_id,
+            photo="https://github.com/user-attachments/assets/421f6099-0a50-42a5-a96b-059ad8af3776",
+            caption="1️⃣ Коллаген, без добавок",
+            reply_markup=markup
+        )
+
+    elif step == "2":
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/")
+        )
+        markup.add(
+            InlineKeyboardButton("◀️ Назад", callback_data="hair_1"),
+            InlineKeyboardButton("Дальше ▶️", callback_data="hair_3")
+        )
+        await bot.send_photo(
+            chat_id=user_id,
+            photo="https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1",
+            caption="2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром",
+            reply_markup=markup
+        )
+
+    elif step == "3":
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/")
+        )
+        markup.add(
+            InlineKeyboardButton("◀️ Назад", callback_data="hair_2")
+        )
+        await bot.send_photo(
+            chat_id=user_id,
+            photo="https://github.com/user-attachments/assets/0d0ee28f-3110-4b2e-9f82-d20989091e0f",
+            caption="3️⃣ Коллоидное серебро. Природный антибиотик.",
+            reply_markup=markup
+        )
+
     
                 # конец кнопки волосы    
 
