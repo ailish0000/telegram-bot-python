@@ -294,8 +294,8 @@ elif data.startswith("hair"):
     
                 # конец кнопки волосы    
 
-        elif data in ["joints", "liver", "vitamins"]:
-            await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
+elif data in ["joints", "liver", "vitamins"]:
+    await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
 
         elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
             cities = {
