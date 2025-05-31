@@ -297,7 +297,7 @@ elif data.startswith("hair"):
 elif data in ["joints", "liver", "vitamins"]:
     await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
 
-        elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
+elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
             cities = {
                 "Minsk": "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 0000",
                 "Gomel": "📍 Гомель: ул. Советская, 45. Тел: +375 29 111 1111",
