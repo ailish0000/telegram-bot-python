@@ -218,16 +218,16 @@ if SSL_AVAILABLE:
             else:
                 navigation_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data="select_product"))
 
-           if step < len(titles[category]):
+            if step < len(titles[category]):
                 navigation_buttons.append(InlineKeyboardButton("Дальше ▶️", callback_data=f"{category}_{step + 1}"))
 
-           if navigation_buttons:
+            if navigation_buttons:
                 markup.add(*navigation_buttons)
 
-           await callback_query.message.edit_media(
-           types.InputMediaPhoto(media=photo, caption=caption, parse_mode="HTML"),
-           reply_markup=markup
-           )
+            await callback_query.message.edit_media(
+            types.InputMediaPhoto(media=photo, caption=caption, parse_mode="HTML"),
+            reply_markup=markup
+            )
 
         elif data in ["joints", "liver", "vitamins"]:
             await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
