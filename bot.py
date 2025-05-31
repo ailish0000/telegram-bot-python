@@ -13,14 +13,12 @@ except ImportError:
 if SSL_AVAILABLE:
     from aiogram import Bot, Dispatcher, executor, types
     from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-    from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
     load_dotenv()
 
     BOT_TOKEN = os.getenv("BOT_TOKEN")
     ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
-    storage = MemoryStorage()
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(bot)
 
@@ -33,10 +31,10 @@ if SSL_AVAILABLE:
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
             InlineKeyboardButton("Регистрация 💚", url="https://aur-ora.com/auth/registration/666282189484"),
-            InlineKeyboardButton("Подборка продуктов", callback_data="select_product"),            
-            InlineKeyboardButton("Каталог всех продуктов", callback_data="catalog"),
-            InlineKeyboardButton("Адреса магазинов", callback_data="check_city"),
-            InlineKeyboardButton("Задать вопрос", callback_data="ask_question"),
+            InlineKeyboardButton("1️⃣ Подборка продуктов", callback_data="select_product"),
+            InlineKeyboardButton("2️⃣ Задать вопрос", callback_data="ask_question"),
+            InlineKeyboardButton("3️⃣ Каталог всех продуктов", callback_data="catalog"),
+            InlineKeyboardButton("4️⃣ Адреса магазинов", callback_data="check_city"),
             InlineKeyboardButton("Сообщить об ошибке ❌", callback_data="report_error")
         )
         return markup
@@ -51,8 +49,7 @@ if SSL_AVAILABLE:
             InlineKeyboardButton("Витамины", callback_data="vitamins"),
             InlineKeyboardButton("Антипаразитарка", callback_data="antiparazit"),
             InlineKeyboardButton("Сорбенты", callback_data="sorbent"),               
-            InlineKeyboardButton("Мои фавориты", callback_data="top"),               
-            InlineKeyboardButton("Детокс", callback_data="detox"),               
+            InlineKeyboardButton("Личный топ", callback_data="top"),               
             InlineKeyboardButton("◀️ Назад", callback_data="back_to_main")
         )
         return markup
@@ -140,7 +137,7 @@ if SSL_AVAILABLE:
             )
 
         elif data == "ask_question":
-            await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат и я обязательно на него отвечу.")
+            await bot.send_message(user_id, "✉️ Напишите ваш вопрос в чат, и я обязательно на него отвечу.")
 
         elif data == "check_city":
             await bot.send_photo(
@@ -161,37 +158,58 @@ if SSL_AVAILABLE:
         elif data == "report_error":
             await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
-        elif any(data.startswith(prefix) for prefix in ["prostuda", "hair", "joints", "liver", "vitamins", "antiparazit", "sorbent", "top", "detox"]):
-            step = data.split("_")[1] if "_" in data else "1"
-            prefix = data.split("_")[0] if "_" in data else data
+        elif data.startswith("prostuda"):
+            step = data.replace("prostuda", "").strip("_") or "1"
 
-            messages = [
-                ("https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64", "1️⃣ Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром", "https://aur-ora.com/catalog/zdorove/543/"),
-                ("https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1", "2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром", "https://aur-ora.com/catalog/zdorove/641/"),
-                ("https://github.com/user-attachments/assets/0d0ee28f-3110-4b2e-9f82-d20989091e0f", "3️⃣ Коллоидное серебро. Природный антибиотик.", "https://aur-ora.com/catalog/zdorove/447/"),
-                ("https://github.com/user-attachments/assets/89b794f8-7c3f-4d45-bc65-d980ba18fbeb", "4️⃣ Натуральное противовирусное ср-во. Содержит L-аргинин, L-лизин, Кошачий коготь и др.", "https://aur-ora.com/catalog/vse_produkty/24839"),
-                ("https://github.com/user-attachments/assets/6be0aed7-982b-4867-a039-4c7005743769", "5️⃣ Пищевой продукт для активизации иммунной системы на основе Чаги.", "https://aur-ora.com/catalog/vse_produkty/7347/")
-            ]
+            if step == "1":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64",
+                    caption="1️⃣ Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром",
+                    reply_markup=markup
+                )
 
-            index = int(step) - 1
-            markup = InlineKeyboardMarkup(row_width=2)
-            markup.add(InlineKeyboardButton("Читать подробнее", url=messages[index][2]))
+            elif step == "2":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_1"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_3")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://github.com/user-attachments/assets/2becd1b4-cb70-42d1-8052-c12d2a750fa1",
+                    caption="2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром",
+                    reply_markup=markup
+                )
 
-            nav_buttons = []
-            if index > 0:
-                nav_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data=f"{prefix}_{index}"))
-            if index < len(messages) - 1:
-                nav_buttons.append(InlineKeyboardButton("Дальше ▶️", callback_data=f"{prefix}_{index + 2}"))
-            if nav_buttons:
-                markup.add(*nav_buttons)
-            markup.add(InlineKeyboardButton("↩️ К выбору категории", callback_data="select_product"))
+            elif step == "3":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/447/")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="prostuda_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://github.com/user-attachments/assets/df53f6da-2cdd-4d75-b20e-0206c3252456",
+                    caption="3️⃣ Коллоидное серебро. Природный антибиотик.",
+                    reply_markup=markup
+                )
 
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=messages[index][0],
-                caption=messages[index][1],
-                reply_markup=markup
-            )
+        elif data in ["joints", "liver", "vitamins"]:
+            await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
 
         elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
             cities = {
@@ -218,5 +236,5 @@ if SSL_AVAILABLE:
 
 else:
     print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS.")
-import admin
+
     
