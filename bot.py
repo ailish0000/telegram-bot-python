@@ -211,21 +211,23 @@ if SSL_AVAILABLE:
 
             markup = InlineKeyboardMarkup(row_width=2)
             markup.add(InlineKeyboardButton("Читать подробнее", url=links[category][step - 1]))
-
+            
+            navigation_buttons = []
             if step > 1:
-                markup.add(InlineKeyboardButton("◀️ Назад", callback_data=f"{category}_{step - 1}"))
+                navigation_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data=f"{category}_{step - 1}"))
             else:
-                markup.add(InlineKeyboardButton("◀️ Назад", callback_data="select_product"))
+                navigation_buttons.append(InlineKeyboardButton("◀️ Назад", callback_data="select_product"))
 
-            if step < len(titles[category]):
-                markup.add(InlineKeyboardButton("Дальше ▶️", callback_data=f"{category}_{step + 1}"))
+           if step < len(titles[category]):
+                navigation_buttons.append(InlineKeyboardButton("Дальше ▶️", callback_data=f"{category}_{step + 1}"))
 
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=images[category][step - 1],
-                caption=titles[category][step - 1],
-                reply_markup=markup
-            )
+           if navigation_buttons:
+                markup.add(*navigation_buttons)
+
+           await callback_query.message.edit_media(
+           types.InputMediaPhoto(media=photo, caption=caption, parse_mode="HTML"),
+           reply_markup=markup
+           )
 
         elif data in ["joints", "liver", "vitamins"]:
             await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
