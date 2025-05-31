@@ -309,15 +309,15 @@ elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
 
 await bot.answer_callback_query(callback_query.id)
 
-    @dp.message_handler(lambda message: message.text and not message.text.startswith("/"))
-    async def forward_user_message(message: types.Message):
-        await bot.send_message(
-            ADMIN_ID,
-            f"📩 Сообщение от @{message.from_user.username or 'без username'} (ID: {message.from_user.id}):\n\n{message.text}"
-        )
+@dp.message_handler(lambda message: message.text and not message.text.startswith("/"))
+async def forward_user_message(message: types.Message):
+    await bot.send_message(
+        ADMIN_ID,
+        f"📩 Сообщение от @{message.from_user.username or 'без username'} (ID: {message.from_user.id}):\n\n{message.text}"
+    )
 await message.reply("✅ Ваше сообщение отправлено. Ожидайте ответа.")
 
-    if __name__ == "__main__":
+if __name__ == "__main__":
         executor.start_polling(dp, skip_updates=True)
 
 else:
