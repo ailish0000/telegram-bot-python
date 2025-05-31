@@ -171,7 +171,7 @@ elif data.startswith("prostuda"):
             InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
             InlineKeyboardButton("Дальше ▶️", callback_data="prostuda_2")
         )
-        await bot.send_photo(
+    await bot.send_photo(
             chat_id=user_id,
             photo="https://github.com/user-attachments/assets/ac7b0dcc-2786-4c3e-b2bb-49e2d5c5af64",
             caption="1️⃣ Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром",
