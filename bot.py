@@ -235,4 +235,4 @@ if SSL_AVAILABLE:
         executor.start_polling(dp, skip_updates=True)
 
 else:
-    print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS."
+    print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS."}
