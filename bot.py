@@ -158,11 +158,10 @@ if SSL_AVAILABLE:
         elif data == "report_error":
             await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
-        # Обработка категории "От простуды"
-        elif data.startswith("prostuda"):
-            step = data.replace("prostuda", "").strip("_") or "1"
-
-            if step == "1":
+        # Обработка всех категорий продуктов
+        elif data in ["prostuda", "hair", "joints", "liver", "vitamins", "antiparazit", "sorbent", "top"]:
+            if data == "prostuda":
+                step = "1"
                 markup = InlineKeyboardMarkup(row_width=2)
                 markup.add(
                     InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/543/")
@@ -177,8 +176,37 @@ if SSL_AVAILABLE:
                     caption="1️⃣ Антиоксидант из сока облепихи. Используется вместе с соком свеклы и серебром",
                     reply_markup=markup
                 )
+            else:
+                category_info = {
+                    "hair": {
+                        "photo": "https://example.com/hair.jpg",
+                        "caption": "🔹 Уход за волосами и ногтями: укрепляющие комплексы",
+                        "url": "https://aur-ora.com/hair_products"
+                    },
+                    "joints": {
+                        "photo": "https://example.com/joints.jpg",
+                        "caption": "🔹 Поддержка суставов: натуральные хондропротекторы",
+                        "url": "https://aur-ora.com/joint_products"
+                    },
+                    # Добавьте аналогично другие категории
+                }
+                
+                markup = InlineKeyboardMarkup()
+                if data in category_info:
+                    markup.add(InlineKeyboardButton("Читать подробнее", url=category_info[data]["url"]))
+                markup.add(InlineKeyboardButton("◀️ Назад", callback_data="select_product"))
+                
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo=category_info.get(data, {}).get("photo", MENU_IMAGE),
+                    caption=category_info.get(data, {}).get("caption", f"Категория: {data}"),
+                    reply_markup=markup
+                )
 
-            elif step == "2":
+        # Обработка пошаговой навигации для prostuda
+        elif data.startswith("prostuda_"):
+            step = data.split("_")[1]
+            if step == "2":
                 markup = InlineKeyboardMarkup(row_width=2)
                 markup.add(
                     InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/catalog/zdorove/641/")
@@ -193,7 +221,6 @@ if SSL_AVAILABLE:
                     caption="2️⃣ Антиоксидант из сока свеклы. Используется совместно с облепихой и серебром",
                     reply_markup=markup
                 )
-
             elif step == "3":
                 markup = InlineKeyboardMarkup(row_width=2)
                 markup.add(
@@ -209,119 +236,7 @@ if SSL_AVAILABLE:
                     reply_markup=markup
                 )
 
-        # Обработка категории "Волосы/ногти"
-        elif data == "hair":
-            markup = InlineKeyboardMarkup(row_width=2)
-            markup.add(
-                InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_волосы")
-            )
-            markup.add(
-                InlineKeyboardButton("◀️ Назад", callback_data="select_product")
-            )
-            await bot.send_photo(
-                chat_id=user_id,
-                photo="https://example.com/photo_hair.jpg",
-                caption="🔹 Продукты для волос и ногтей: описание",
-                reply_markup=markup
-            )
-
-        # Обработка категории "Для суставов"
-        elif data == "joints":
-            markup = InlineKeyboardMarkup(row_width=2)
-            markup.add(
-                InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_суставы")
-            )
-            markup.add(
-                InlineKeyboardButton("◀️ Назад", callback_data="select_product")
-            )
-            await bot.send_photo(
-                chat_id=user_id,
-                photo="https://example.com/photo_joints.jpg",
-                caption="🔹 Продукты для суставов: описание",
-                reply_markup=markup
-            )
-
-        # Обработка категории "Для печени"
-        elif data == "liver":
-            markup = InlineKeyboardMarkup(row_width=2)
-            markup.add(
-                InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_печень")
-            )
-            markup.add(
-                InlineKeyboardButton("◀️ Назад", callback_data="select_product")
-            )
-            await bot.send_photo(
-                chat_id=user_id,
-                photo="https://example.com/photo_liver.jpg",
-                caption="🔹 Продукты для печени: описание",
-                reply_markup=markup
-            )
-
-        # Обработка категории "Витамины"
-        elif data == "vitamins":
-            markup = InlineKeyboardMarkup(row_width=2)
-            markup.add(
-                InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_витамины")
-            )
-            markup.add(
-                InlineKeyboardButton("◀️ Назад", callback_data="select_product")
-            )
-            await bot.send_photo(
-                chat_id=user_id,
-                photo="https://example.com/photo_vitamins.jpg",
-                caption="🔹 Витаминные комплексы: описание",
-                reply_markup=markup
-            )
-
-        # Обработка категории "Антипаразитарка"
-        elif data == "antiparazit":
-            markup = InlineKeyboardMarkup(row_width=2)
-            markup.add(
-                InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_антипаразитарка")
-            )
-            markup.add(
-                InlineKeyboardButton("◀️ Назад", callback_data="select_product")
-            )
-            await bot.send_photo(
-                chat_id=user_id,
-                photo="https://example.com/photo_antiparazit.jpg",
-                caption="🔹 Антипаразитарные продукты: описание",
-                reply_markup=markup
-            )
-
-        # Обработка категории "Сорбенты"
-        elif data == "sorbent":
-            markup = InlineKeyboardMarkup(row_width=2)
-            markup.add(
-                InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_сорбенты")
-            )
-            markup.add(
-                InlineKeyboardButton("◀️ Назад", callback_data="select_product")
-            )
-            await bot.send_photo(
-                chat_id=user_id,
-                photo="https://example.com/photo_sorbent.jpg",
-                caption="🔹 Сорбенты: описание",
-                reply_markup=markup
-            )
-
-        # Обработка категории "Личный топ"
-        elif data == "top":
-            markup = InlineKeyboardMarkup(row_width=2)
-            markup.add(
-                InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_топ")
-            )
-            markup.add(
-                InlineKeyboardButton("◀️ Назад", callback_data="select_product")
-            )
-            await bot.send_photo(
-                chat_id=user_id,
-                photo="https://example.com/photo_top.jpg",
-                caption="🔹 Личные топ-продукты: описание",
-                reply_markup=markup
-            )
-
-        # Обработка городов (должна быть после всех категорий продуктов)
+        # Обработка городов
         elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
             cities = {
                 "Minsk": "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 0000",
