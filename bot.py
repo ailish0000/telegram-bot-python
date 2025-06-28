@@ -158,6 +158,7 @@ if SSL_AVAILABLE:
         elif data == "report_error":
             await bot.send_message(user_id, "⚠️ Расскажите подробнее об ошибке, чтобы я могла её исправить.")
 
+        # Обработка категории "От простуды"
         elif data.startswith("prostuda"):
             step = data.replace("prostuda", "").strip("_") or "1"
 
@@ -208,8 +209,248 @@ if SSL_AVAILABLE:
                     reply_markup=markup
                 )
 
-        elif data in ["joints", "liver", "vitamins"]:
-            await bot.send_message(user_id, f"Вы выбрали категорию: {data}")
+        # Обработка категории "Волосы/ногти"
+        elif data.startswith("hair"):
+            step = data.replace("hair", "").strip("_") or "1"
+
+            if step == "1":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_волосы1")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="hair_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_hair1.jpg",
+                    caption="1️⃣ Продукт для волос/ногтей 1: Описание",
+                    reply_markup=markup
+                )
+
+            elif step == "2":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_волосы2")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="hair_1"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="hair_3")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_hair2.jpg",
+                    caption="2️⃣ Продукт для волос/ногтей 2: Описание",
+                    reply_markup=markup
+                )
+
+            elif step == "3":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_волосы3")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="hair_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_hair3.jpg",
+                    caption="3️⃣ Продукт для волос/ногтей 3: Описание",
+                    reply_markup=markup
+                )
+
+        # Обработка категории "Для суставов"
+        elif data.startswith("joints"):
+            step = data.replace("joints", "").strip("_") or "1"
+
+            if step == "1":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_суставы1")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="joints_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_joints1.jpg",
+                    caption="1️⃣ Продукт для суставов 1: Описание",
+                    reply_markup=markup
+                )
+
+            elif step == "2":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="joints_1")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_joints2.jpg",
+                    caption="2️⃣ Продукт для суставов 2: Описание",
+                    reply_markup=markup
+                )
+
+        # Обработка категории "Для печени"
+        elif data.startswith("liver"):
+            step = data.replace("liver", "").strip("_") or "1"
+
+            if step == "1":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_печень1")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="liver_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_liver1.jpg",
+                    caption="1️⃣ Продукт для печени 1: Описание",
+                    reply_markup=markup
+                )
+
+            elif step == "2":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="liver_1")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_liver2.jpg",
+                    caption="2️⃣ Продукт для печени 2: Описание",
+                    reply_markup=markup
+                )
+
+        # Обработка категории "Витамины"
+        elif data.startswith("vitamins"):
+            step = data.replace("vitamins", "").strip("_") or "1"
+
+            if step == "1":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_витамины1")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="vitamins_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_vitamins1.jpg",
+                    caption="1️⃣ Витаминный комплекс 1: Описание",
+                    reply_markup=markup
+                )
+
+            elif step == "2":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="vitamins_1")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_vitamins2.jpg",
+                    caption="2️⃣ Витаминный комплекс 2: Описание",
+                    reply_markup=markup
+                )
+
+        # Обработка категории "Антипаразитарка"
+        elif data.startswith("antiparazit"):
+            step = data.replace("antiparazit", "").strip("_") or "1"
+
+            if step == "1":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_антипаразитарка1")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="antiparazit_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_antiparazit1.jpg",
+                    caption="1️⃣ Антипаразитарный продукт 1: Описание",
+                    reply_markup=markup
+                )
+
+            elif step == "2":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="antiparazit_1")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_antiparazit2.jpg",
+                    caption="2️⃣ Антипаразитарный продукт 2: Описание",
+                    reply_markup=markup
+                )
+
+        # Обработка категории "Сорбенты"
+        elif data.startswith("sorbent"):
+            step = data.replace("sorbent", "").strip("_") or "1"
+
+            if step == "1":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_сорбенты1")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="sorbent_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_sorbent1.jpg",
+                    caption="1️⃣ Сорбент 1: Описание",
+                    reply_markup=markup
+                )
+
+            elif step == "2":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="sorbent_1")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_sorbent2.jpg",
+                    caption="2️⃣ Сорбент 2: Описание",
+                    reply_markup=markup
+                )
+
+        # Обработка категории "Личный топ"
+        elif data.startswith("top"):
+            step = data.replace("top", "").strip("_") or "1"
+
+            if step == "1":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_топ1")
+                )
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="select_product"),
+                    InlineKeyboardButton("Дальше ▶️", callback_data="top_2")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_top1.jpg",
+                    caption="1️⃣ Личный топ продукт 1: Описание",
+                    reply_markup=markup
+                )
+
+            elif step == "2":
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("◀️ Назад", callback_data="top_1")
+                )
+                await bot.send_photo(
+                    chat_id=user_id,
+                    photo="https://example.com/photo_top2.jpg",
+                    caption="2️⃣ Личный топ продукт 2: Описание",
+                    reply_markup=markup
+                )
 
         elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
             cities = {
