@@ -311,7 +311,39 @@ if SSL_AVAILABLE:
             markup.add(
                 InlineKeyboardButton("Читать подробнее", url="https://aur-ora.com/ссылка_топ")
             )
-           
-    
+            markup.add(
+                InlineKeyboardButton("◀️ Назад", callback_data="select_product")
+            )
+            await bot.send_photo(
+                chat_id=user_id,
+                photo="https://example.com/photo_top.jpg",
+                caption="🔹 Личные топ-продукты: описание",
+                reply_markup=markup
+            )
 
+        # Обработка городов (должна быть после всех категорий продуктов)
+        elif data in ["Minsk", "Gomel", "Brest", "Vitebsk", "Mogilev"]:
+            cities = {
+                "Minsk": "📍 Минск: пр-т Независимости, 123. Тел: +375 29 000 0000",
+                "Gomel": "📍 Гомель: ул. Советская, 45. Тел: +375 29 111 1111",
+                "Brest": "📍 Брест: ул. Ленина, 10. Тел: +375 29 222 2222",
+                "Vitebsk": "📍 Витебск: ул. Чкалова, 15. Тел: +375 29 333 3333",
+                "Mogilev": "📍 Могилев: пр-т Мира, 7. Тел: +375 29 444 4444"
+            }
+            await bot.send_message(user_id, cities[data])
 
+        await bot.answer_callback_query(callback_query.id)
+
+    @dp.message_handler(lambda message: message.text and not message.text.startswith("/"))
+    async def forward_user_message(message: types.Message):
+        await bot.send_message(
+            ADMIN_ID,
+            f"📩 Сообщение от @{message.from_user.username or 'без username'} (ID: {message.from_user.id}):\n\n{message.text}"
+        )
+        await message.reply("✅ Ваше сообщение отправлено. Ожидайте ответа.")
+
+    if __name__ == "__main__":
+        executor.start_polling(dp, skip_updates=True)
+
+else:
+    print("❌ Бот не может быть запущен без поддержки SSL. Пожалуйста, используйте среду с поддержкой HTTPS.")
